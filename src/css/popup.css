@@ -1,0 +1,730 @@
+/*@import url(https://fonts.googleapis.com/css?family=Noto+Sans);*/
+@font-face {
+  font-family: 'Noto Sans';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Noto Sans'), local('NotoSans'), url(fonts/NotoSans-Regular.woff) format('woff2');
+}
+@font-face {
+  font-family: 'Noto Sans Bold';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Noto Sans'), local('NotoSans'), url(fonts/NotoSans-Bold.woff) format('woff2');
+}
+html {
+  overflow: hidden;
+}
+body {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  font-family: 'Meiryo UI', 'Noto Sans', 'Segoe UI', 'MS UI Gothic', Helvetica;
+  font-size: 0.9em;
+  background-color: #F6F6F6;
+  overflow: hidden;
+}
+.ax.noinit {
+  text-decoration: underline;
+}
+.ax.readyAxKey {
+  color: blue;
+  /*font-weight: bold;*/
+  text-decoration: underline;
+}
+.resizeX,.resizeR {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  cursor: w-resize;
+  z-index: 5;
+}
+.bookmks .resizeR {
+  left: auto;
+  margin-left: -8px;
+}
+.folders .resizeR {
+  left: auto;
+  margin-left: -3px;
+}
+.resizeY {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  cursor: s-resize;
+  z-index: 5;
+}
+.contextMenu {
+  display: none;
+}
+.popup {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  background: #F6F6F6;
+}
+.popup input[type='text'], .popup textarea, .popup input[type='url'] {
+  font: 1.0em 'Meiryo UI', 'Noto Sans', 'MS UI Gothic', Helvetica;
+}
+.popup .shortcut span {
+  padding: 1px 3px;
+  border: 1px solid lightblue;
+  border-radius: 3px;
+  min-width: 24px;
+  display: inline-block;
+  text-align: center;
+  margin: 0px 1px;
+  font: 1.0em verdana bold;
+  color: #000000;
+  background: #FFFFFF;
+}
+.popup .panel1 {
+  font-size: 1.0em;
+}
+.popup .panel1 a {
+  outline: 0;
+}
+.panel1 .r-buttons {
+  position: absolute;
+  right: 9px;
+  top: 9px;
+  font-size: 16px;
+  color: #ccc;
+  cursor: pointer;
+}
+.panel1 .r-buttons i:hover {
+  color: #333;
+}
+.panel1 .r-buttons i {
+  margin: 0 3px;
+}
+.panel1 .r-buttons i.fa-times {
+  font-size: 18px;
+}
+.panel1 .r-buttons i.displayed {
+  color: #0080ff;
+}
+.popup .help {
+  position: absolute;
+  right: 34px;
+  top: 11px;
+  font-size: 1.3em;
+}
+.popup .done, .popup .delete {
+  margin-left: 15px;
+  padding: 7px 10px;
+}
+.popup .delete {
+  margin-right: 60px;
+}
+.popup .inputs {
+  padding: 10px;
+  line-height: 1.8em;
+}
+.popup .inputs hr {
+  margin: 5px 0;
+}
+.popup fieldset {
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+.popup legend {
+  padding: 0 10px;
+}
+.popup .inputs label {
+  padding-left: 2px;
+}
+.popup .inputs input[type='text'] {
+  margin-top: 0;
+}
+.popup input[type='radio'] {
+  box-shadow: none;
+}
+.popup .inputs .note {
+  margin-top: 4px;
+  line-height: 1.2em;
+}
+/* ScrollBaseView */
+.popup .expand-icon {
+  -webkit-transform: rotate(-90deg);
+  -webkit-transition: -webkit-transform 150ms;
+  background-image: url(img/triangle.png);
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
+  display: inline-block;
+  height: 18px;
+  opacity: .6;
+  position: relative;
+  top: 0;
+  left: 1px;
+  vertical-align: top;
+  width: 13px;
+  margin: 1px 3px;
+}
+.folders .result {
+  white-space: nowrap;
+}
+.folders .title {
+  -webkit-padding-start: 21px;
+  background-position: 0 50%;
+  background-repeat: no-repeat;
+  padding-right: 2px;
+  border: 1px solid transparent;
+  background-position-y: 1px;
+  outline: none;
+}
+.folders .folder:not(.ui-sortable-helper) .title:hover {
+  border-radius: 1px;
+  border: 1px solid #66f;
+  background-color: rgba(204, 204, 255, 0.2);
+}
+.folders .opened > .marker > .title {
+  background-image: -webkit-image-set(url(img/folderOpen10.png) 1x);
+  background-position-x: 2px;
+  /*line-height: 1.4em;*/
+  /*display: inline-block;*/
+  display: inline-block;
+  height: 20px;
+}
+.folders .opened > .marker > .title.fld1 {
+  background-image: -webkit-image-set(url(img/folderOpen1.png) 1x);
+}
+.folders .opened > .marker > .title.fld2 {
+  background-image: -webkit-image-set(url(img/folderOpen2.png) 1x);
+}
+.folders .opened > .marker > .title.fld3 {
+  background-image: -webkit-image-set(url(img/folderOpen3.png) 1x);
+}
+.folders .opened > .marker > .title.fld4 {
+  background-image: -webkit-image-set(url(img/folderOpen4.png) 1x);
+}
+.folders .opened > .marker > .title.fld5 {
+  background-image: -webkit-image-set(url(img/folderOpen5.png) 1x);
+}
+.folders .opened > .marker > .title.fld6 {
+  background-image: -webkit-image-set(url(img/folderOpen6.png) 1x);
+}
+.folders .opened > .marker > .title.fld7 {
+  background-image: -webkit-image-set(url(img/folderOpen7.png) 1x);
+}
+.folders .opened > .marker > .title.fld8 {
+  background-image: -webkit-image-set(url(img/folderOpen8.png) 1x);
+}
+.folders .opened > .marker > .title.fld9 {
+  background-image: -webkit-image-set(url(img/folderOpen9.png) 1x);
+}
+.folders .opened > .marker > .title.fld10 {
+  background-image: -webkit-image-set(url(img/folderOpen10.png) 1x);
+}
+.folders .opened > .marker > .title.fld11 {
+  background-image: -webkit-image-set(url(img/folderOpen11.png) 1x);
+}
+.folders .opened > .marker > .title.fld12 {
+  background-image: -webkit-image-set(url(img/folderOpen12.png) 1x);
+}
+.folders .opened > .marker > .title.fld13 {
+  background-image: -webkit-image-set(url(img/folderOpen13.png) 1x);
+}
+.folders .opened > .marker > .title.fld14 {
+  background-image: -webkit-image-set(url(img/folderOpen14.png) 1x);
+}
+.folders .opened > .marker > .title.fld15 {
+  background-image: -webkit-image-set(url(img/folderOpen15.png) 1x);
+}
+.folders .opened > .marker > .title.fld16 {
+  background-image: -webkit-image-set(url(img/folderOpen16.png) 1x);
+}
+.folders .opened > .marker > .title.fld17 {
+  background-image: -webkit-image-set(url(img/folderOpen17.png) 1x);
+}
+.folders .opened > .marker > .title.fld18 {
+  background-image: -webkit-image-set(url(img/folderOpen18.png) 1x);
+}
+.folders .opened > .marker > .title.fld19 {
+  background-image: -webkit-image-set(url(img/folderOpen19.png) 1x);
+}
+/*
+.folders .sp.opened > .marker > .title {
+  background-image: -webkit-image-set(url(img/folderOpenBlue2.png) 1x);
+}
+*/
+.folders .result:not(.searched) .opened > .marker > .title {
+  font-weight: bold;
+  font-family: 'Meiryo UI', 'Noto Sans Bold', 'Segoe UI', 'MS UI Gothic', Helvetica;
+  margin: 3px 0;
+}
+/*.folders .result:not(.searched) .opened > .marker > .expand-icon {
+  margin-top: 4px;
+}*/
+.folders .result:not(.searched) .opened > .marker > .title {
+  background-color: #FFFFFF;
+  border-radius: 1px;
+}
+.folders > .result > .link:not(.hide) {
+  display: block;
+  opacity: 1;
+  animation: fade-in 0.15s ease-in-out;
+}
+.bookmks > .result > .opened > .link:not(.hide) {
+  display: block;
+  opacity: 1;
+  animation: fade-in 0.15s ease-in-out;
+}
+.bookmks > .result > .expanded > .opened > .link:not(.hide) {
+  display: block;
+  opacity: 1;
+  animation: fade-in 0.15s ease-in-out;
+}
+.bookmks > .result > .expanded > .expanded > .opened > .link:not(.hide) {
+  display: block;
+  opacity: 1;
+  animation: fade-in 0.15s ease-in-out;
+}
+.bookmks > .result > .expanded > .expanded > .expanded > .opened > .link:not(.hide) {
+  display: block;
+  opacity: 1;
+  animation: fade-in 0.15s ease-in-out;
+}
+.bookmks > .result > .expanded > .expanded > .expanded > .expanded > .opened > .link:not(.hide) {
+  display: block;
+  opacity: 1;
+  animation: fade-in 0.15s ease-in-out;
+}
+.bookmks > .result > .expanded > .expanded > .expanded > .expanded > .expanded > .opened > .link:not(.hide) {
+  display: block;
+  opacity: 1;
+  animation: fade-in 0.15s ease-in-out;
+}
+.bookmks > .result > .expanded > .expanded > .expanded > .expanded > .expanded > .expanded > .opened > .link:not(.hide) {
+  display: block;
+  opacity: 1;
+  animation: fade-in 0.15s ease-in-out;
+}
+.bookmks > .result > .expanded > .expanded > .expanded > .expanded > .expanded > .expanded > .expanded > .opened > .link:not(.hide) {
+  display: block;
+  opacity: 1;
+  animation: fade-in 0.15s ease-in-out;
+}
+.folders .folder:not(.opened) > .marker > .title {
+  background-image: url(img/folderClose10.png);
+  background-position-x: 2px;
+  /*line-height: 1.4em;*/
+  height: 20px;
+}
+.folders .folder:not(.opened) > .marker > .title.fld1 {
+  background-image: url(img/folderClose1.png);
+}
+.folders .folder:not(.opened) > .marker > .title.fld2 {
+  background-image: url(img/folderClose2.png);
+}
+.folders .folder:not(.opened) > .marker > .title.fld3 {
+  background-image: url(img/folderClose3.png);
+}
+.folders .folder:not(.opened) > .marker > .title.fld4 {
+  background-image: url(img/folderClose4.png);
+}
+.folders .folder:not(.opened) > .marker > .title.fld5 {
+  background-image: url(img/folderClose5.png);
+}
+.folders .folder:not(.opened) > .marker > .title.fld6 {
+  background-image: url(img/folderClose6.png);
+}
+.folders .folder:not(.opened) > .marker > .title.fld7 {
+  background-image: url(img/folderClose7.png);
+}
+.folders .folder:not(.opened) > .marker > .title.fld8 {
+  background-image: url(img/folderClose8.png);
+}
+.folders .folder:not(.opened) > .marker > .title.fld9 {
+  background-image: url(img/folderClose9.png);
+}
+.folders .folder:not(.opened) > .marker > .title.fld10 {
+  background-image: url(img/folderClose10.png);
+}
+.folders .folder:not(.opened) > .marker > .title.fld11 {
+  background-image: url(img/folderClose11.png);
+}
+.folders .folder:not(.opened) > .marker > .title.fld12 {
+  background-image: url(img/folderClose12.png);
+}
+.folders .folder:not(.opened) > .marker > .title.fld13 {
+  background-image: url(img/folderClose13.png);
+}
+.folders .folder:not(.opened) > .marker > .title.fld14 {
+  background-image: url(img/folderClose14.png);
+}
+.folders .folder:not(.opened) > .marker > .title.fld15 {
+  background-image: url(img/folderClose15.png);
+}
+.folders .folder:not(.opened) > .marker > .title.fld16 {
+  background-image: url(img/folderClose16.png);
+}
+.folders .folder:not(.opened) > .marker > .title.fld17 {
+  background-image: url(img/folderClose17.png);
+}
+.folders .folder:not(.opened) > .marker > .title.fld18 {
+  background-image: url(img/folderClose18.png);
+}
+.folders .folder:not(.opened) > .marker > .title.fld19 {
+  background-image: url(img/folderClose19.png);
+}
+/*
+.folders .folder.sp:not(.opened) > .marker > .title {
+  background-image: -webkit-image-set(url(img/folderCloseBlue2.png) 1x);
+}
+*/
+.folders .result .folder > .marker {
+  background: transparent;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.folders .result .folder:not(.opened) > .marker {
+  background: transparent;
+}
+.folders .result:not(.searched) .folder.opened > .marker {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.title i, .title2 i {
+  margin-right: 2px;
+}
+.title i.none, .title2 i.none {
+  margin-right: 0;
+}
+@keyframes fade-in {
+  0% {
+    display: none;
+    opacity: 0;
+  }
+  1% {
+    display: block;
+    opacity: 0;
+  }
+  100% {
+    display: block;
+    opacity: 1;
+  }
+}
+.popup .link {
+  display: none;
+  opacity: 0;
+}
+.folders .folder > .link {
+  display: none;
+}
+.folders .result > .link {
+  display: block;
+}
+.folders .expanded > .marker > .expand-icon {
+  -webkit-transform: rotate(0);
+}
+.folders .opened > .marker > .expand-icon {
+  top: 3px;
+}
+.folders .folder.opened:not(.expanded) {
+  max-height: 26px;
+}
+.folders .folder:not(.expanded) {
+  max-height: 21px;
+  overflow: hidden;
+}
+.folders:not(.sorting) .expanded {
+  overflow: hidden;
+  max-height: 50em;
+  transition: max-height 250ms ease-in-out;
+}
+.folders .expanded > .folder {
+  display: block;
+}
+.folders .folder:not(.expanded) > .folder {
+  display: none;
+}
+.folders .folder:not(.hasFolder) > .marker > .expand-icon {
+  visibility: hidden;
+}
+.folders .folder span {
+  cursor: pointer;
+  display: inline-block;
+}
+.folders .folder.hide {
+  display: none;
+}
+.popup .selected, .title:focus, .title2:focus {
+  outline: 0;
+  background-color: rgba(204, 204, 255, 0.5);
+  border-radius: 1px;
+  border: 1px solid #00f;
+  text-decoration: none;
+  color: #000;
+}
+.popup .ui-resizable-sw {
+  position: fixed;
+  width: 12px;
+  height: 12px;
+  bottom: 0px;
+  background-image: -webkit-canvas(handle_sw3);
+  background-repeat: no-repeat;
+}
+/* BookmarkView */
+.bookmarks {
+  /*width: 500px;*/
+  overflow: hidden;
+}
+.bookmarks input[type='checkbox'] {
+  margin-left: 6px;
+  margin-right: 2px;
+}
+.bookmarks button[type='submit'] {
+  margin-left: 3px;
+  padding: 4px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.bookmarks .query {
+  width: 80%;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  outline: none;
+}
+.bookmarks .query:focus {
+  box-shadow: none;
+  border: 0;
+}
+.fa-keyboard-o {
+  color: #000;
+}
+.bookmarks a {
+  outline: 0;
+  transition: none;
+  -webkit-padding-start: 20px;
+  background-repeat: no-repeat;
+  background-size: 16px;
+  background-position-y: 2px;
+  padding-right: 2px;
+  border: 1px solid transparent;
+  text-decoration: none;
+  color: #222;
+}
+.bookmarks a:hover {
+  color: #4D99E0;
+  text-decoration: underline;
+}
+.bookmarks a:focus {
+  color: #4D99E0;
+  text-decoration: underline;
+}
+.bookmarks .js {
+  background-image: url('js.png');
+}
+.bookmarks .posted {
+  background: #66F;
+  border-radius: 3px;
+  padding: 0 4px;
+  margin-right: 1px;
+  font-size: 0.9em;
+  font-weight: 700;
+  color: #fff;
+}
+.bookmarks .button-bar {
+  top: 5px;
+}
+.bookmarks .button-bar a {
+  padding: 5px;
+}
+.bookmarks .result_outer, .bookmarks .settingsView {
+  height: 530px;
+  overflow: hidden;
+}
+.result_outer.folders {
+  /*padding-right: 1px;*/
+}
+.bookmarks .settingsView {
+  display: none;
+  overflow: auto;
+}
+.folders .ui-state-hover {
+  background-color: rgba(204, 204, 255, 0.5);
+  border-radius: 1px;
+  border: 1px solid #00f;
+}
+.folders {
+  padding: 5px 0;
+}
+.folders .folder {
+  position: relative;
+}
+.folders .result {
+  margin-top: 2.2em;
+}
+.folders .opened > .link {
+  display: none;
+}
+.folders .ui-resizable-handle {
+  position: fixed;
+}
+.ui-placeholder-folder {
+  width: 100%;
+  height: 3px;
+  border: 1px solid #FF1E93;
+  border-radius: 4px;
+  background: #FF1E93;
+}
+.folders .link {
+  margin-left: 6px;
+  margin-right: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 1px;
+}
+.folders > form {
+  background: #ddd;
+  margin-top: -5px;
+  border-right: 1px solid whitesmoke;
+  position: absolute;
+  z-index: 2;
+  width: 100%;
+}
+.folders > form.scrolling {
+  box-shadow: #999 2px 0 3px 2px;
+}
+.folders > .fa-times {
+  display: none;
+  position: absolute;
+  z-index: 3;
+  top: 7px;
+  right: 7px;
+  cursor: pointer;
+}
+.folders > div.scrollEnd.scrolling {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  box-shadow: #999 2px 0px 3px 2px;
+  z-index: 1;
+}
+.splitter {
+  width: 100%;
+  height: 5px;
+}
+.bookmks {
+  position: relative;
+  float: right;
+  z-index: 4;
+  padding: 5px;
+  border-radius: 3px;
+  background: #fff;
+  border: 4px solid Gold;
+}
+.bookmks .result {
+  white-space: nowrap;
+  padding-bottom: 15px;
+}
+.bookmks > .fa-times {
+  display: none;
+  position: fixed;
+  z-index: 3;
+  top: 7px;
+  margin-left: -27px;
+  cursor: pointer;
+}
+.bookmks .link {
+  text-indent: 0;
+  padding: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  z-index: 6;
+}
+.bookmks .result > .link {
+  display: none;
+}
+.folders .result > .link {
+  display: none;
+}
+.bookmks .folder .title, .bookmks .folder .expand-icon, .bookmks .marker {
+  display: none;
+}
+.bookmks .result .link i {
+  display: none;
+}
+.bookmks .result .link a[data-key='app'] {
+  color: #4D99E0;
+}
+.bookmks .result .link a[data-key='xts'] {
+  color: #4D99E0;
+}
+.bookmks .result .link a.disabled {
+  filter: grayscale(100%);
+  -webkit-filter: grayscale(100%);
+}
+.bookmks .result.searched .link i {
+  display: inherit;
+}
+#jqContextMenu .fa-check {
+  margin: -2px 3px -2px -2px;
+  padding: 3px;
+  cursor: pointer;
+}
+#jqContextMenu li.openMode.user .fa-check {
+  color: #222;
+  background-color: #a4dae3;
+  /*background-color: rgba(200, 220, 255, 1.0);*/
+}
+#jqContextMenu li.openMode:not(.user) .fa-check {
+  color: transparent;
+}
+#jqContextMenu li.openMode.default .fa-check {
+  color: silver;
+}
+#jqContextMenu li.openMode:not(.user) .fa-check:hover {
+  color: #000;
+}
+#jqContextMenu li {
+  white-space: nowrap;
+}
+#jqContextMenu hr {
+  margin: 3px 1px;
+}
+#jqContextMenu .disabled {
+  color: #999;
+}
+.dragMoving {
+  position: absolute;
+  background-image: -webkit-canvas(updown);
+  background-repeat: no-repeat;
+  width: 25px;
+  height: 25px;
+  z-index: 50000;
+  display: none;
+  border-radius: 3px;
+}
+.xts {
+  position: relative;
+}
+.xtsDisabled.disabled {
+  position: absolute;
+  left: 0;
+  background-image: url(img/xtsDisabled.png);
+  background-repeat: no-repeat;
+  width: 20px;
+  height: 20px;
+}
+.windowSeparater {
+  display: none;
+}
+.result:not(.searched) .tabs.opened .windowSeparater {
+  display: inherit;
+}
+.windowSeparater hr {
+  margin-top: 5px;
+  margin-bottom: 5px;
+  border-color: #666;
+}
+input.preSearch {
+  display: none;
+}

@@ -1,0 +1,25 @@
+{
+  "name": "dial-bookmarks",
+  "version": "1.0.0",
+  "description": "Devlopment for Dial Bookmaks",
+  "main": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "gulp": "gulp"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "coffeescript": "^2.3.2",
+    "del": "^4.1.0",
+    "gulp": "^4.0.0",
+    "gulp-coffee": "^3.0.3",
+    "gulp-concat": "^2.6.1",
+    "gulp-rename": "^1.4.0",
+    "gulp-tap": "^1.0.1",
+    "gulp-uglify-es": "^1.0.4",
+    "uglify-es": "^3.3.9",
+    "zip-folder": "^1.0.0"
+  }
+}

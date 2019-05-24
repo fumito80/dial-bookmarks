@@ -1,0 +1,271 @@
+/*@import url(https://fonts.googleapis.com/css?family=Noto+Sans);*/
+@font-face {
+  font-family: 'Noto Sans';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Noto Sans'), local('NotoSans'), url(fonts/NotoSans-Regular.woff) format('woff2');
+}
+@font-face {
+  font-family: 'Noto Sans Bold';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Noto Sans'), local('NotoSans'), url(fonts/NotoSans-Bold.woff) format('woff2');
+}
+html {
+  overflow: auto;
+}
+body {
+  overflow: auto;
+  font-family: 'Meiryo UI', 'Noto Sans', 'Segoe UI', 'MS UI Gothic', Helvetica;
+  font-size: 0.9em;
+  background-color: white;
+  margin: 0;
+  padding: 0;
+}
+dd {
+  -webkit-margin-start: 20px;
+}
+input[type='radio'] {
+  box-shadow: none;
+}
+.extensionName {
+  background-image: url(../images/db1.png);
+  background-repeat: no-repeat;
+  background-size: 24px;
+  background-position-y: 3px;
+  -webkit-padding-start: 1.3em;
+}
+.header {
+  position: fixed;
+  z-index: 2;
+  width: 600px;
+  height: 65px;
+  top: 0;
+  background: linear-gradient(white, rgba(255, 255, 255, 0.8));
+}
+.btnSave {
+  position: fixed;
+  top: 10px;
+  left: 530px;
+  z-index: 3;
+}
+.main {
+  display: none;
+  margin-top: 60px;
+}
+.main table {
+  margin: 0;
+}
+.main td {
+  padding: 0;
+  font-size: 1em;
+  border: 0
+}
+.main td label {
+  padding-top: 0;
+}
+.main td:nth-child(1) {
+  width: 20%;
+  white-space: nowrap;
+}
+.main td:nth-child(2) * {
+  float: left;
+  margin-left: 5px;
+  white-space: nowrap;
+}
+.main .folders .result {
+  margin-top: 0;
+}
+.main .folders .result .marker {
+  background-color: transparent;
+}
+.main .folders .result .opened .marker .title {
+  color: black;
+  font-size: 1.0em;
+  font-weight: normal;
+  background-color: transparent;
+}
+.popup {
+  display: none;
+  position: fixed;
+  right: 10px;
+  border: 0;
+  margin-top: 8px;
+  padding: 2px;
+  border-radius: 3px;
+  background-color: white;
+  /*z-index: 3;*/
+}
+.settingsView {
+  width: 600px;
+  position: absolute;
+  z-index: 1;
+  margin: 8px 15px 15px 15px;
+  background: white;
+  padding-right: 15px;
+}
+.settingsView .main {
+  padding: 5px 20px 30px 20px;
+  background-color: #F6F6F6;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+.settingsView .panel1 {
+  padding-left: 10px;
+}
+.settingsView label {
+  padding-top: 10px;
+  padding-left: 14px;
+}
+.settingsView textarea {
+  width: 100%;
+  height: 150px;
+  border-radius: 0;
+}
+.settingsView div.tabImp, .settingsView div.tabExp {
+  padding: 5px;
+  border: 1px solid #e5e5e5;
+  background: white;
+}
+.tabImp button, .tabExp button {
+  margin-left: 5px;
+  margin-top: 5px;
+}
+.settingsView .export {
+  background: #EEE;
+}
+.settingsView .export:focus {
+  border: 1px solid #ccc;
+  box-shadow: inset 0px 1px 6px #ccc;
+}
+.settingsView ul.tabs {
+  margin-top: 15px;
+  line-height: 1.0em;
+  float: none;
+}
+.settingsView ul.tabs a {
+  cursor: pointer;
+}
+.settingsView .impReplace {
+  margin-left: 15px;
+}
+.settingsView .clear {
+  padding: 3px;
+  border-radius: 0;
+  margin-top: -3px;
+}
+.settingsView a {
+  outline: 0;
+}
+.settingsView .btnSave {
+  float: right;
+}
+.colorSample1 {
+  width: 60px;
+  height: 26px;
+  border: 1px solid #ccc;
+}
+.floating * {
+  float: left;
+  margin-right: 10px;
+}
+.version {
+  font-size: 0.8em;
+  font-weight: normal;
+}
+.settingsView input[type='checkbox'] {
+  margin-right: 4px;
+}
+.heading {
+  padding-top: 20px;
+  border-bottom: 1px solid #CCC;
+  font-family: 'Meiryo UI', 'Noto Sans Bold', 'Segoe UI', 'MS UI Gothic', Helvetica;
+  font-weight: bold;
+}
+.settingsView button.folderIcon {
+  font-family: 'Meiryo UI', Helvetica;
+  font-size: 0.9em;
+}
+input[type='number'] {
+  padding: 4px 0;
+}
+.screen1 {
+  display: none;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 2;
+}
+.dialogIcons {
+  display: none;
+  cursor: default;
+  position: fixed;
+  z-index: 4;
+  background-color: #F6F6F6;
+  padding: 20px;
+  box-shadow: 0 0 20px black;
+  border-radius: 5px;
+  height: 90%;
+}
+.folderIconOuter {
+  overflow-y: scroll;
+}
+.dialogIcons table {
+  border-collapse: separate;
+}
+.dialogIcons .dialogTitle {
+  font-size: 1.1em;
+}
+.dialogIcons .folderName {
+  font-size: 1.1em;
+  font-family: 'Meiryo UI', 'Noto Sans Bold', 'Segoe UI', 'MS UI Gothic', Helvetica;
+  font-weight: bold;
+}
+.dialogIcons .caption {
+  margin-top: 5px;
+  display: block;
+  border: 0;
+}
+.btnCloseDialog {
+  float: right;
+}
+.folderIcons i {
+  font-size: 1.2em;
+  margin: 2px;
+  cursor: pointer;
+}
+.folderIcons i.none {
+  font-size: 0.8em;
+}
+.folderIcons i:hover {
+  color: #50B1FE;
+}
+.folderIcons td {
+  text-align: center;
+  padding: 0;
+  font-size: 1.0em;
+  border: 1px solid transparent;
+}
+.folderIcons td.selected {
+  border: 1px dotted #000;
+  border-radius: 2px;
+}
+.folderIcons td.selected i {
+  color: #50B1FE;
+}
+.folderColors img {
+  margin: 2px;
+  cursor: pointer;
+}
+.folderColors span {
+  padding-top: 5px;
+  border: 1px solid transparent;
+}
+.folderColors span.selected {
+  border: 1px dotted #000;
+  border-radius: 2px;
+}
+.lastSync {
+  color: navy;
+}
