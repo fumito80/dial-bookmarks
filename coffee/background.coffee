@@ -108,7 +108,7 @@ onClickPopup = (options) ->
       top:    ~~localStorage.windowTop    || 100
       left:   ~~localStorage.windowLeft   || 100
       url:  "popup.html"
-      type: "detached_panel"
+      type: "panel"
     chrome.windows.create windowInfo, (win) ->
       popupWindowId = win.id
       chrome.windows.update win.id,
@@ -644,22 +644,18 @@ window.bmm =
       title: title
       url: url
       (treeNode) ->
+        if local.options.postPage and requestInfo[tabId]?.method is "POST"
+          @setPostData bmId, requestInfo[tabId].formData
         dfd.resolve treeNode.id, tabId
     dfd.promise()
 
   addBookmark: (tabId, parentId, title, url) ->
-    @createBookmark(parentId, title, url, tabId).done (bmId, tabId) =>
-      if local.options.postPage and requestInfo[tabId]?.method is "POST"
-        @setPostData bmId, requestInfo[tabId].formData
+    @createBookmark(parentId, title, url, tabId)
 
   addBookmarks: (parentId, tabs) ->
-    addBookmarksRecusive = (tabs) =>
-      if tab = tabs.shift()
-        @createBookmark(parentId, tab.title, tab.url, tab.id).done (bmId, tabId) =>
-          if local.options.postPage and requestInfo[tabId]?.method is "POST"
-            @setPostData bmId, requestInfo[tabId].formData
-          addBookmarksRecusive tabs
-    addBookmarksRecusive tabs
+    $.when tabs.map((tab) => @createBookmark(parentId, tab.title, tab.url, tab.id))...
+      .done ->
+        chrome.runtime.sendMessage action: "changeSpFolderThing"
 
   makeHtml: (holdState) ->
     elResult$.empty()

@@ -60,7 +60,7 @@ markerColorFont = localStorage.markerColorFont || "#000000"
 document.head.appendChild elStyle = document.createElement "style"
 elStyle.setAttribute "type", "text/css"
 window.stylesheet = elStyle.sheet
-stylesheet.addRule ".folders .result:not(.searched) .opened > .marker", "background-color:" + markerColor
+# stylesheet.addRule ".folders .result:not(.searched) .opened > .marker", "background-color:" + markerColor
 stylesheet.addRule ".folders .result:not(.searched) .opened > .marker > .title", "background-color:" + markerColorBkg
 stylesheet.addRule ".folders .result:not(.searched) .opened > .marker", "color:" + markerColorFont
 stylesheet.addRule ".bookmks", "border: 4px solid " + markerColor

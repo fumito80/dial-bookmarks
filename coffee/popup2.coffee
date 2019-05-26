@@ -1301,9 +1301,7 @@ $ ->
     try
       switch req.action
         when "setColor"
-          # for i in [0...stylesheet.cssRules.length]
-          #   stylesheet.deleteRule(0)
-          stylesheet.addRule ".folders .result:not(.searched) .opened > .marker", "background-color:" + req.markerColor
+          # stylesheet.addRule ".folders .result:not(.searched) .opened > .marker", "background-color:" + req.markerColor
           stylesheet.addRule ".folders .result:not(.searched) .opened > .marker > .title", "background-color:" + req.markerColorBkg
           stylesheet.addRule ".folders .result:not(.searched) .opened > .marker", "color:" + req.markerColorFont
           stylesheet.addRule ".bookmks", "border: 4px solid " + req.markerColor

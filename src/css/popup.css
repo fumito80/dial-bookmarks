@@ -151,19 +151,19 @@ body {
 /* ScrollBaseView */
 .popup .expand-icon {
   -webkit-transform: rotate(-90deg);
-  -webkit-transition: -webkit-transform 150ms;
+  -webkit-transition: -webkit-transform 100ms;
   background-image: url(img/triangle.png);
   background-position: 50% 50%;
   background-repeat: no-repeat;
   display: inline-block;
-  height: 18px;
-  opacity: .6;
+  height: 13px;
+  opacity: .7;
   position: relative;
-  top: 0;
-  left: 1px;
+  top: 2px;
+  left: 0;
   vertical-align: top;
   width: 13px;
-  margin: 1px 3px;
+  margin: 1px;
 }
 .folders .result {
   white-space: nowrap;
@@ -185,8 +185,6 @@ body {
 .folders .opened > .marker > .title {
   background-image: -webkit-image-set(url(img/folderOpen10.png) 1x);
   background-position-x: 2px;
-  /*line-height: 1.4em;*/
-  /*display: inline-block;*/
   display: inline-block;
   height: 20px;
 }
@@ -247,19 +245,10 @@ body {
 .folders .opened > .marker > .title.fld19 {
   background-image: -webkit-image-set(url(img/folderOpen19.png) 1x);
 }
-/*
-.folders .sp.opened > .marker > .title {
-  background-image: -webkit-image-set(url(img/folderOpenBlue2.png) 1x);
-}
-*/
 .folders .result:not(.searched) .opened > .marker > .title {
   font-weight: bold;
   font-family: 'Meiryo UI', 'Noto Sans Bold', 'Segoe UI', 'MS UI Gothic', Helvetica;
-  margin: 3px 0;
 }
-/*.folders .result:not(.searched) .opened > .marker > .expand-icon {
-  margin-top: 4px;
-}*/
 .folders .result:not(.searched) .opened > .marker > .title {
   background-color: #FFFFFF;
   border-radius: 1px;
@@ -372,11 +361,6 @@ body {
 .folders .folder:not(.opened) > .marker > .title.fld19 {
   background-image: url(img/folderClose19.png);
 }
-/*
-.folders .folder.sp:not(.opened) > .marker > .title {
-  background-image: -webkit-image-set(url(img/folderCloseBlue2.png) 1x);
-}
-*/
 .folders .result .folder > .marker {
   background: transparent;
   text-overflow: ellipsis;
@@ -421,8 +405,6 @@ body {
 }
 .folders .expanded > .marker > .expand-icon {
   -webkit-transform: rotate(0);
-}
-.folders .opened > .marker > .expand-icon {
   top: 3px;
 }
 .folders .folder.opened:not(.expanded) {

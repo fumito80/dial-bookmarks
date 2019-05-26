@@ -27,8 +27,12 @@ cp = ->
     .pipe dest 'dist'
 
 cpLib = ->
-  src ['lib/jquery.min.js', 'lib/underscore-min.js']
-    .pipe dest 'dist/lib'
+  src([
+    'lib/jquery.min.js'
+    'lib/jquery-ui-1.10.3.custom.min.js'
+    'lib/underscore-min.js'
+  ]).pipe \
+    dest 'dist/lib'
 
 compile = (source, coffeeOp = {}) ->
   source
