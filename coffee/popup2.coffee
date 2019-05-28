@@ -476,7 +476,10 @@ onClickWindow = (event) ->
     virtualClick = false
   else if axKeyMode
     setAxKeyMode 0
-  target = event.target
+  target = if event.target?.className is "ax" or event.target?.localName is "i"
+    event.target.parentElement
+  else
+    event.target
   unless className = target?.className
     return
   if /expand-icon/.test className
@@ -536,7 +539,7 @@ onClickWindow = (event) ->
         selectAxFolder(target$) if axKeyMode
     setFolderState(allSet)
     resizeScrollBar()
-    sendToSettingsFolderInfo target$.get(0), event.target
+    sendToSettingsFolderInfo target$.get(0), target
 
 mouseStateDown = false
 onMouseUpWindow = (event) ->

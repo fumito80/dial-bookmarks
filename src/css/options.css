@@ -22,7 +22,11 @@ body {
   margin: 0;
   padding: 0;
 }
+h5 {
+  font-weight: bold;
+}
 dd {
+  margin-bottom: 0;
   -webkit-margin-start: 20px;
 }
 input[type='radio'] {
@@ -32,8 +36,7 @@ input[type='radio'] {
   background-image: url(../images/db1.png);
   background-repeat: no-repeat;
   background-size: 24px;
-  background-position-y: 3px;
-  -webkit-padding-start: 1.3em;
+  -webkit-padding-start: 1.4em;
 }
 .header {
   position: fixed;
@@ -41,6 +44,7 @@ input[type='radio'] {
   width: 600px;
   height: 65px;
   top: 0;
+  padding-top: 13px;
   background: linear-gradient(white, rgba(255, 255, 255, 0.8));
 }
 .btnSave {
@@ -85,6 +89,9 @@ input[type='radio'] {
   font-weight: normal;
   background-color: transparent;
 }
+.main > label {
+  display: table;
+}
 .popup {
   display: none;
   position: fixed;
@@ -114,7 +121,6 @@ input[type='radio'] {
   padding-left: 10px;
 }
 .settingsView label {
-  padding-top: 10px;
   padding-left: 14px;
 }
 .settingsView textarea {
@@ -178,16 +184,15 @@ input[type='radio'] {
 }
 .heading {
   padding-top: 20px;
+  margin-bottom: 14px;
   border-bottom: 1px solid #CCC;
   font-family: 'Meiryo UI', 'Noto Sans Bold', 'Segoe UI', 'MS UI Gothic', Helvetica;
   font-weight: bold;
+  line-height: 1.2em;
 }
 .settingsView button.folderIcon {
   font-family: 'Meiryo UI', Helvetica;
   font-size: 0.9em;
-}
-input[type='number'] {
-  padding: 4px 0;
 }
 .screen1 {
   display: none;
@@ -259,7 +264,6 @@ input[type='number'] {
   cursor: pointer;
 }
 .folderColors span {
-  padding-top: 5px;
   border: 1px solid transparent;
 }
 .folderColors span.selected {
@@ -268,4 +272,8 @@ input[type='number'] {
 }
 .lastSync {
   color: navy;
+}
+.selectColors.form-control {
+  padding: 1px .75rem;
+  height: auto;
 }

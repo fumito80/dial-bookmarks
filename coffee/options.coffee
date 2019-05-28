@@ -1,3 +1,5 @@
+$$ = (selector, parent = document) -> [parent.querySelectorAll(selector)...]
+
 jsonExpData = {}
 jsonImpData = {}
 local = null
@@ -72,22 +74,18 @@ onClickImport = (event) ->
     alert e.message
 
 onSubmitMain = ->
-  elCheckBoxes = document.querySelectorAll(".main input[type='checkbox']")
-  for i in [0...elCheckBoxes.length]
-    elCheckebox = elCheckBoxes[i]
+  $$(".main input[type='checkbox']").forEach (elCheckebox) ->
     local.options[elCheckebox.className] = elCheckebox.checked
   local.options.wheelSense = $(".wheelSense:checked").val()
   local.options.historyCount = $(".historyCount").val()
   local.options.maxOpens = ~~$(".maxOpens").val()
   local.options.newTabOpenType = $("input[name='newTabOpenType']:checked").val()
   localStorage.zoom = $(".zoom").val()
-  elColors = document.querySelectorAll(".main .selectColors")
-  for i in [0...elColors.length]
-    elColor = elColors[i]
-    localStorage[elColor.className.replace("selectColors ", "")] = elColor.value
+  $$(".main .selectColors").forEach (elColor) ->
+    localStorage[elColor.dataset.colorPart] = elColor.value
   bmm.saveLocal(local).done ->
     chrome.tabs.getCurrent (tab) ->
-      chrome.windows.get tab.windowId, {populate: true}, (win) ->
+      chrome.windows.get tab.windowId, { populate: true }, (win) ->
         if local.options.standalone
           if win.type is "popup"
             bmm.reloadPopup().done ->
@@ -106,32 +104,18 @@ onSubmitMain = ->
   false
 
 onChangeMarkerColor = (event) ->
-  msg = action: "setColor"
-  elColors = document.querySelectorAll(".selectColors")
-  for i in [0...elColors.length]
-    elColor = elColors[i]
-    msg[elColor.className.replace("selectColors ", "")] = elColor.value
+  msg = $$(".selectColors").reduce (acc, elColor) ->
+    Object.assign acc, [elColor.dataset.colorPart]: elColor.value
+  , action: "setColor"
   chrome.runtime.sendMessage msg
 
 onWheelMarkerColor = (event) ->
   colorValue = event.target.value
-  className = event.target.className.replace("selectColors ", "")
-  for i in [0...markerColors.length]
-    if markerColors[i][1] is colorValue
-      index = i
-      break
-  if event.originalEvent.wheelDelta > 0
-    if index is 0
-      index = markerColors.length - 1
-    else
-      index--
-  else
-    if index is markerColors.length - 1
-      index = 0
-    else
-      index++
-  event.target.value = colorValue = markerColors[index][1]
-  $("." + className).trigger "change"
+  curretIndex = markerColors.findIndex ([, value]) -> value is colorValue
+  newIndex = curretIndex + Math.sign(event.originalEvent.wheelDelta) + 1
+  event.target.value = [markerColors[markerColors.length - 1], markerColors..., [markerColors]][newIndex][1]
+  { colorPart } = event.target.dataset
+  $("[data-color-part='#{colorPart}']").trigger "change"
   event.preventDefault()
   event.stopPropagation()
   false
@@ -294,8 +278,8 @@ $ ->
 
   # Colors
   selectColors$ = $(".selectColors")
-  markerColors.forEach (colors) ->
-    selectColors$.append """<option value="#{colors[1]}" style="background:#{colors[1]}">#{colors[0]}</option>"""
+  markerColors.forEach ([colorName, colorCode]) ->
+    selectColors$.append """<option value="#{colorCode}" style="background:#{colorCode}">#{colorName}</option>"""
   selectColors$.on "change", (event) ->
     $(event.target).next(".colorSample1").css background: event.currentTarget.value
 
@@ -303,18 +287,18 @@ $ ->
   if local.options.standalone
     bmm.createPopup().done ->
       chrome.tabs.getCurrent (tab) ->
-        chrome.windows.create {tabId: tab.id, type: "popup", width: 700}, ->
+        chrome.windows.create { tabId: tab.id, type: "popup", width: 700 }, ->
   else
     $(".popup").prop "src", "popup.html"
 
-  Array.prototype.forEach.call document.querySelectorAll(".main input[type='checkbox']"), (elCheckebox) ->
+  [$(".main :checkbox")...].forEach (elCheckebox) ->
     elCheckebox.checked = local.options[elCheckebox.className]
   $(".wheelSense[value='#{(local.options.wheelSense || "normal")}']")[0].checked = true
-  $(".markerColor").val color = localStorage.markerColor || "#87CEEB"
+  $("[data-color-part='markerColor']").val color = localStorage.markerColor || "#87CEEB"
   $(".colorSampleMarker").css background: color
-  $(".markerColorBkg").val color = localStorage.markerColorBkg || "#FFFFFF"
+  $("[data-color-part='markerColorBkg']").val color = localStorage.markerColorBkg || "#FFFFFF"
   $(".colorSampleBkg").css background: color
-  $(".markerColorFont").val color = localStorage.markerColorFont || "#000000"
+  $("[data-color-part='markerColorFont']").val color = localStorage.markerColorFont || "#000000"
   $(".colorSampleFont").css background: color
   $(".zoom").val (localStorage.zoom || 100)
   $(".historyCount").val (local.options.historyCount || 30)
@@ -341,9 +325,9 @@ $ ->
   $(".dialogIcons").on "click", onClickDialogIcons
   $(".openNewTab").on "click", (ev) ->
     if $(ev.target).is(":checked")
-      $("input[name='newTabOpenType']").prop("disabled", "").parent().removeClass("disabled")
+      $("input[name='newTabOpenType']").prop("disabled", false).parent().removeClass("disabled")
     else
-      $("input[name='newTabOpenType']").prop("disabled", "disabled").parent().addClass("disabled")
+      $("input[name='newTabOpenType']").prop("disabled", true).parent().addClass("disabled")
   # $(".btnSave").on "click", onClickSave
   $(window).on "mousewheel", onWheelWindow
 
@@ -363,12 +347,14 @@ $ ->
   $.get("font-awesome/fonts/font-list2.txt").done (out) ->
     folderIcons = out.split("\n")
     folderIcons$ = $(".folderIcons")
-    for i in [0...folderIcons.length]
-      className = folderIcons[i]
+    folderIcons.reduce (tr$, className, i) ->
+      td$ = """<td><i class="fa #{className}" title="#{className}"></i></td>"""
       if i % 18 is 0
-        tr$ = $("<tr/>").appendTo folderIcons$
-      tr$.append """<td><i class="fa #{className}" title="#{className}"></i></td>"""
-    tr$.append """<td colspan="3"><i class="none">None</i></td>"""
+        $("<tr/>").append(td$).appendTo folderIcons$
+      else
+        tr$.append td$
+    , null
+    .append """<td colspan="3"><i class="none">None</i></td>"""
     #folderIcons2$.on "change", (event) ->
 
   loadSyncData()
@@ -376,106 +362,105 @@ $ ->
 tmplMain = _.template """
   <div class="settingsView">
     <div class="header">
-      <h5><span class="extensionName"></span> Settings <span class="version"></span></h5>
+      <h5><span class="extensionName"></span> options <span class="version"></span></h5>
     </div>
     <form class="main">
-      <button class="btnSave blue">Save</button>
+      <button class="btnSave btn btn-primary">Save</button>
       <div class="heading"><%=general%></div>
-      <label><input type="checkbox" class="openNewTab"><%=openNewTab%></label><br>
+      <label><input type="checkbox" class="openNewTab"><%=openNewTab%></label>
         <dd>
           <label><input type="radio" name="newTabOpenType" value="openLinkNewTab"> - <%=openRight%></label>
           <label><input type="radio" name="newTabOpenType" value="openLinkNewTabRE"> - <%=openRightEnd%></label>
         </dd>
-      <label><input type="checkbox" class="openExclusive" checked><%=openExclusive%></label><br>
-      <label><input type="checkbox" class="memoryFolder" checked><%=memoryFolder%></label><br>
-      <label><input type="checkbox" class="noDispRoot"><%=noDispRoot%></label><br>
-      <label><input type="checkbox" class="noDispOther"><%=noDispOther%></label><br>
-      <label><input type="checkbox" class="standalone"><%=standalone%></label><br>
-      <label><%=maxOpens%> <input type="number" min="1" max="200" value="20" class="maxOpens"></label><br>
+      <label><input type="checkbox" class="openExclusive" checked><%=openExclusive%></label>
+      <label><input type="checkbox" class="memoryFolder" checked><%=memoryFolder%></label>
+      <label><input type="checkbox" class="noDispRoot"><%=noDispRoot%></label>
+      <label><input type="checkbox" class="noDispOther"><%=noDispOther%></label>
+      <label><input type="checkbox" class="standalone"><%=standalone%></label>
+      <label class="form-inline"><%=maxOpens%>: <input type="number" min="1" max="200" value="20" class="maxOpens form-control"></label>
       <div class="heading"><%=advanced%></div>
       <label style="display:none;"><input type="checkbox" class="preSearch"><%=preSearch%></label>
-      <label><input type="checkbox" class="postPage"><%=postPage%></label><br>
-      <label><input type="checkbox" class="restorePanelWin"><%=restorePanelWin%></label><br>
+      <label><input type="checkbox" class="postPage"><%=postPage%></label>
+      <label><input type="checkbox" class="restorePanelWin"><%=restorePanelWin%></label>
       <div class="heading"><%=exterior%></div>
-      <label><input type="checkbox" class="swapPane"><%=swapPane%></label><br>
-      <label><%=zoom%> <input type="number" min="50" max="150" value="100" class="zoom"> %</label><br>
+      <label><input type="checkbox" class="swapPane"><%=swapPane%></label>
+      <label class="form-inline"><%=zoom%>: <input type="number" min="50" max="150" value="100" class="zoom form-control"> %</label>
       <table>
         <tr>
           <td>
             <label class="floating" for=".markerColor"><%=markerColor%>:</label>
           </td>
-          <td>
-            <select class="selectColors markerColor"></select>
+          <td class="form-inline">
             <div class="colorSample1 colorSampleMarker"></div>
+            <select data-color-part="markerColor" class="selectColors form-control"></select>
           </td>
         </tr>
         <tr>
           <td>
             <label class="floating" for=".markerColorBkg"><%=markerColorBkg%>:</label>
           </td>
-          <td>
-            <select class="selectColors markerColorBkg"></select>
+          <td class="form-inline">
             <div class="colorSample1 colorSampleBkg"></div>
+            <select data-color-part="markerColorBkg" class="selectColors form-control"></select>
           </td>
         </tr>
         <tr>
           <td>
             <label class="floating" for=".markerColorFont"><%=markerColorFont%>:</label>
           </td>
-          <td>
-            <select class="selectColors markerColorFont"></select>
+          <td class="form-inline">
             <div class="colorSample1 colorSampleFont"></div>
+            <select data-color-part="markerColorFont" class="selectColors form-control"></select>
           </td>
         </tr>
       </table>
       <label>
-        <button class="folderIcon small"><i class="fa fa-folder-open-o"></i> <%=setFolderIcon%></button>
-      </label><br>
+        <button class="folderIcon btn btn-secondary btn-sm"><i class="fa fa-folder-open-o"></i> <%=setFolderIcon%></button>
+      </label>
       <div class="heading"><%=addonFolder%></div>
-      <label><input type="checkbox" class="dispGoogleBookmarks">Google Bookmarks</label><br>
-      <label><input type="checkbox" class="dispMostVisited"><%=dispMostVisited%></label><br>
-      <label><input type="checkbox" class="dispRecentVisited"><%=dispRecentVisited%>: <input type="number" min="5" max="200" value="30" class="historyCount"> <%=counting%></label><br>
-      <label><input type="checkbox" class="dispRecentlyClosed"><%=dispRecentlyClosed%></label><br>
-      <label><input type="checkbox" class="dispTabs"><%=dispTabs%></label><br>
+      <label><input type="checkbox" class="dispGoogleBookmarks">Google Bookmarks</label>
+      <label><input type="checkbox" class="dispMostVisited"><%=dispMostVisited%></label>
+      <label class="form-inline"><input type="checkbox" class="dispRecentVisited"><%=dispRecentVisited%>: <input type="number" min="5" max="200" value="30" class="historyCount form-control"> <%=counting%></label>
+      <label><input type="checkbox" class="dispRecentlyClosed"><%=dispRecentlyClosed%></label>
+      <label><input type="checkbox" class="dispTabs"><%=dispTabs%></label>
       <dd><label><%=tabsCaution%></label></dd>
       <dd><label>- <input type="checkbox" class="focusLinkTab"><%=focusLinkTab%></label></dd>
       <dd><label>- <input type="checkbox" class="hoverLinkTab"><%=hoverLinkTab%></label></dd>
-      <label><input type="checkbox" class="dispApps"><%=dispApps%></label><br>
-      <label><input type="checkbox" class="dispXts"><%=dispXts%></label><br>
+      <label><input type="checkbox" class="dispApps"><%=dispApps%></label>
+      <label><input type="checkbox" class="dispXts"><%=dispXts%></label>
       <div class="heading"><%=mouse%></div>
-      <label><input type="checkbox" class="noWheelLoop"><%=noWheelLoop%></label><br>
-      <label><input type="checkbox" class="noWheelLoopBM"><%=noWheelLoopBM%></label><br>
-      <label><%=wheelSense%>:</label>
+      <label><input type="checkbox" class="noWheelLoop"><%=noWheelLoop%></label>
+      <label><input type="checkbox" class="noWheelLoopBM"><%=noWheelLoopBM%></label>
+      <label><%=wheelSense%>:
         <label><input type="radio" class="wheelSense" name="wheelSense" value="normal" checked="checked"><%=wheelSenseNrm%></label>
         <label><input type="radio" class="wheelSense" name="wheelSense" value="slow"><%=wheelSenseSlow%></label>
-      <br>
-    <div style="display:none">
-      <div>
-        <div class="heading"><%=syncSetsCaption%></div>
-        <label>Last saved: <span class="lastSync"></span></label><br>
-        <label>
-          <button class="saveSync small"><i class="fa fa-cloud-upload"></i> <%=saveSync%></button>
-          <button class="impSync orange small"><i class="fa fa-cloud-download"></i> <%=importSync%></button>
-        </label>
-      </div>
-      <div class="heading"><%=expimp%></div>
-      <ul class="tabs">
-        <li class="current"><a class="tabExp"><%=tabExp%></a></li>
-        <li><a class="tabImp"><%=tabImp%></a></li>
-      </ul>
-      <div class="tabExp"> <%=expDataCaption%><br>
-        <textarea class="export" readonly="readonly"></textarea>
-      </div>
-      <div class="tabImp" style="display:none"> <%=expDataCaption%> <!--<button class="clear small">Clear</button>--><br>
-        <textarea class="import"></textarea>
-        <br>
-        <button class="impAppend small"><i class="fa fa-plus"></i> <%=impAppend%></button>
-        <button class="impReplace small"><i class="fa fa-download"></i> <%=impReplace%></button>
+      </label>
+      <div style="display:none">
+        <div>
+          <div class="heading"><%=syncSetsCaption%></div>
+          <label>Last saved: <span class="lastSync"></span></label>
+          <label>
+            <button class="saveSync small"><i class="fa fa-cloud-upload"></i> <%=saveSync%></button>
+            <button class="impSync orange small"><i class="fa fa-cloud-download"></i> <%=importSync%></button>
+          </label>
+        </div>
+        <div class="heading"><%=expimp%></div>
+        <ul class="tabs">
+          <li class="current"><a class="tabExp"><%=tabExp%></a></li>
+          <li><a class="tabImp"><%=tabImp%></a></li>
+        </ul>
+        <div class="tabExp"> <%=expDataCaption%>
+          <textarea class="export" readonly="readonly"></textarea>
+        </div>
+        <div class="tabImp" style="display:none"> <%=expDataCaption%> <!--<button class="clear small">Clear</button>-->
+          <textarea class="import"></textarea>
+          <button class="impAppend small"><i class="fa fa-plus"></i> <%=impAppend%></button>
+          <button class="impReplace small"><i class="fa fa-download"></i> <%=impReplace%></button>
+        </div>
       </div>
     </form>
-  </div>
     <div class="dialogIcons">
-      <button class="btnCloseDialog small">Close</button>
+      <button class="btnCloseDialog btn btn-secondary btn-sm">Close</button>
       <span class="dialogTitle"><%=setFolderIcon.replace('...', '')%> - </span>
       <span class="folderName"></span>
       <div class="caption">Color:</div>
