@@ -10,6 +10,8 @@ focusedWindowLastState = null
 g_folderState = {}
 permissionSessions = false
 
+$$ = (selector, parent = document) -> [parent.querySelectorAll(selector)...]
+
 setEventHandlers = ->
   if local.options.postPage
     unless chrome.webRequest.onBeforeRequest.hasListeners()
@@ -101,43 +103,42 @@ chrome.permissions.contains {permissions: ["sessions"]}, (granted) ->
 urlPopup = chrome.runtime.getURL("popup.html")
 
 onClickPopup = (options) ->
+  calcTopLeft = ->
+    width  = ~~localStorage.windowWidth  || 400
+    height = ~~localStorage.windowHeight || 600
+    if options.update
+      top  = Math.min(options.screenY, screen.availHeight - height)
+      left = Math.min(options.screenX, screen.availWidth - width)
+    else
+      top  = ~~localStorage.windowTop    || 100
+      left = ~~localStorage.windowLeft   || 100
+    { width, height, top, left }
+  updateWindow = (winId) ->
+    chrome.windows.update winId, calcTopLeft(), -> dfd.resolve()
   createWindow = ->
-    windowInfo =
-      width:  ~~localStorage.windowWidth  || 400
-      height: ~~localStorage.windowHeight || 600
-      top:    ~~localStorage.windowTop    || 100
-      left:   ~~localStorage.windowLeft   || 100
+    windowInfo = Object.assign {}, calcTopLeft(),
       url:  "popup.html"
-      type: "panel"
+      type: "popup"
     chrome.windows.create windowInfo, (win) ->
-      popupWindowId = win.id
-      chrome.windows.update win.id,
-        width:  ~~localStorage.windowWidth  || 400
-        height: ~~localStorage.windowHeight || 600
-        top:    ~~localStorage.windowTop    || 100
-        left:   ~~localStorage.windowLeft   || 100
-        ->
-          dfd.resolve()
+      updateWindow popupWindowId = win.id
 
   dfd = $.Deferred()
   if popupWindowId
-    chrome.windows.getAll {populate: true}, (wins) ->
-      found = false
-      for i in [0...wins.length]
-        if wins[i].id is popupWindowId
-          found = true
-      if found
-        chrome.windows.update popupWindowId, {focused: true}, (win) ->
+    chrome.windows.get popupWindowId, { populate: true }, (win) ->
+      if win
+        if options?.update
+          updateWindow win.id
+        chrome.windows.update popupWindowId, { focused: true }, (win) ->
           if options?.create
             dfd.resolve()
           else if options?.reload
-            chrome.tabs.query {windowId: win.id}, (tabs) ->
-               chrome.tabs.reload tabs[0].id
-               dfd.resolve()
+            chrome.tabs.query { windowId: win.id }, (tabs) ->
+              chrome.tabs.reload tabs[0].id
+              dfd.resolve()
           else if options.close
-            chrome.tabs.query {windowId: win.id}, (tabs) ->
-               chrome.tabs.remove tabs[0].id
-               dfd.resolve()
+            chrome.tabs.query { windowId: win.id }, (tabs) ->
+              chrome.tabs.remove tabs[0].id
+              dfd.resolve()
       else
         if permissionSessions and not (options.close or options.reload)
           chrome.sessions.getRecentlyClosed {maxResults: chrome.sessions.MAX_SESSION_RESULTS}, (sessions) ->
@@ -146,8 +147,7 @@ onClickPopup = (options) ->
               if win = sessions[i].window
                 if win.tabs[0].url is urlPopup
                   chrome.sessions.restore win.sessionId, (restoredSession) ->
-                    popupWindowId = restoredSession.window.id
-                    dfd.resolve()
+                    updateWindow popupWindowId = restoredSession.window.id
                   sessionFound = true
                   break
             unless sessionFound
@@ -170,11 +170,11 @@ onClickPopup = (options) ->
 changeStatePopup = ->
   chrome.windows.get focusedWindowId, (win) ->
     if win.state is "minimized"
-      chrome.windows.update popupWindowId, {state: "minimized"}
+      chrome.windows.update popupWindowId, { state: "minimized" }
     else
       if focusedWindowLastState is "minimized"
-        chrome.windows.update popupWindowId, {state: "normal"}
-        chrome.windows.update focusedWindowId, {focused: true}
+        chrome.windows.update popupWindowId, { state: "normal" }
+        chrome.windows.update focusedWindowId, { focused: true }
     focusedWindowLastState = win.state
 
 restorePopupByApp = true
@@ -211,23 +211,23 @@ onFocusChangedWindow = (windowId) ->
                   allMini = false
               if popupWindowState is "minimized"
                 unless allMini or selfMinimized
-                  chrome.windows.update popupWindowId, {state: "normal", focused: false}, (win) ->
+                  chrome.windows.update popupWindowId, { state: "normal", focused: false }, (win) ->
                     restorePopupByApp = true
                     popupWindowLastState = win.state
               else
                 if allMini and restorePopupByApp
-                  chrome.windows.update popupWindowId, {state: "minimized"}, (win) ->
+                  chrome.windows.update popupWindowId, { state: "minimized" }, (win) ->
                     selfMinimized = false
                     restorePopupByApp = false
                     popupWindowLastState = win.state
 
 checkStandalone = ->
   if local.options.standalone
-    chrome.browserAction.setPopup {popup: ""}
+    chrome.browserAction.setPopup { popup: "" }
     unless chrome.browserAction.onClicked.hasListeners()
       chrome.browserAction.onClicked.addListener onClickPopup
   else
-    chrome.browserAction.setPopup {popup: "popup.html"}
+    chrome.browserAction.setPopup { popup: "popup.html" }
     if chrome.browserAction.onClicked.hasListeners()
       chrome.browserAction.onClicked.removeListener onClickPopup
 
@@ -240,9 +240,9 @@ getActiveTab = ->
     if tabs.length > 0
       dfd.resolve tabs[0]
     else
-      chrome.tabs.query {active: true, windowType: "normal"}, (tabs) =>
-        focusedWindowId = tabs[0].windowId
-        dfd.resolve tabs[0]
+      chrome.tabs.query { active: true, windowType: "normal" }, ([tab]) =>
+        focusedWindowId = tab.windowId
+        dfd.resolve tab
   dfd.promise()
 
 UnescapeUTF8 = (str) ->
@@ -253,23 +253,13 @@ UnescapeUTF8 = (str) ->
 window.bmm =
   getGoogleBookmarks: ->
     dfd = $.Deferred()
-    $.get("http://www.google.com/bookmarks/lookup", {output: "xml", num: 10000}, "xml").done (xmlResp) ->
-      sites = []
-      xpath = "/xml_api_reply/bookmarks/bookmark"
-      iterator = xmlResp.evaluate(xpath, xmlResp.documentElement, null, XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null)
-      while node = iterator.iterateNext()
-        labels = []
-        Array.prototype.forEach.call node.querySelectorAll("label"), (el) ->
-          labels.push el.textContent
-        sites.push
-          title: node.querySelector("title").textContent
-          url: node.querySelector("url").textContent
-          #notes: node.querySelector("notes")?.textContent
-          labels: labels
-      labels = []
-      Array.prototype.forEach.call xmlResp.querySelectorAll("label"), (el) ->
-        labels.push el.textContent
-      labels = _.unique labels
+    $.get("http://www.google.com/bookmarks/lookup", { output: "xml", num: 10000 }, "xml").done (xmlResp) ->
+      sites = $$("xml_api_reply > bookmarks > bookmark", xmlResp).map (node) ->
+        title: node.querySelector("title").textContent
+        url: node.querySelector("url").textContent
+        #notes: node.querySelector("notes")?.textContent
+        labels: $$("label", node).map (el) -> el.textContent
+      labels = _.unique $$("label", xmlResp).map (el) -> el.textContent
       dfd.resolve(sites, labels)
     dfd.promise()
   closeWindow: (newWindowId, tabId, url) ->
@@ -362,12 +352,9 @@ window.bmm =
       false
     getFolderInfoByName: (className) ->
       folder = @folders[className]
-      _.extend folder, title: local.folderData[className]?.spTitle || folder.disp
+      Object.assign {}, folder, title: local.folderData[className]?.spTitle || folder.disp
     getKeys: ->
-      result = []
-      for key of @folders
-        result.push key
-      result
+      Object.keys @folders
     createFolders: (dfd) ->
       askOrCreateSpecialFolder = (folderName) ->
         dfd2 = $.Deferred()
@@ -376,20 +363,20 @@ window.bmm =
             node.id
           else if node.children
             for i in [0...node.children.length]
-              if resp = searchFolder(node.children[i])
+              if id = searchFolder(node.children[i])
                 break
-            resp
+            id
           else
-            false
+            null
         chrome.bookmarks.getTree (treeNode) ->
           for i in [0...treeNode.length]
             if spFolderId = searchFolder(treeNode[i])
               break
           if spFolderId
-            dfd2.resolve {created: false, id: spFolderId}
+            dfd2.resolve { created: false, id: spFolderId }
           else
-            chrome.bookmarks.create {title: folderName, parentId: "1"}, (newNode) ->
-              dfd2.resolve {created: true, id: newNode.id}
+            chrome.bookmarks.create { title: folderName, parentId: "1" }, (newNode) ->
+              dfd2.resolve { created: true, id: newNode.id }
         dfd2.promise()
 
       createElAndFolder = (keys, dfd) =>
@@ -472,7 +459,7 @@ window.bmm =
     local = items
     saveLocalAndCleanup(true).done =>
       unless local.options.memoryFolder
-        g_folderState = {"1": {"opened": true, "expanded": true}}
+        g_folderState = { "1": { "opened": true, "expanded": true } }
       preMakeHtml()
       dfd.resolve()
     @spFolders.idCleanup()
@@ -508,8 +495,8 @@ window.bmm =
       if local.options.noDispRoot
         fisrstFolderId = elResult$.find(".folder:first").attr "data-id"
         g_folderState[fisrstFolderId].opened = true
-      $.each elResult$.find(".link.hide"), (i, elFolder) ->
-        Array.prototype.forEach.call elFolder.childNodes, (el) ->
+      [elResult$.find(".link.hide")...].forEach (elFolder) ->
+        [elFolder.childNodes...].forEach (el) ->
           el.className = "link"
 
   openBookmark2: (bmId, windowId, baseTabId, index, url, openMode) ->
@@ -890,16 +877,27 @@ onUpdateTabHandler = (tabId, changeInfo, tab) ->
       code: "window.onbeforeunload=function(){chrome.runtime.sendMessage({action:'closePopup',windowId:#{tab.windowId}})}"
       runAt: "document_end"
   changeSpFolderThing()
+  try
+    chrome.runtime.sendMessage "action": "hello", (resp) ->
+      unless resp is "ok" 
+        chrome.tabs.executeScript tabId,
+          file: "dbAgent.js"
+          runAt: "document_end"
+          (respJs) ->
+  catch
 
 chrome.runtime.onMessage.addListener (msg) ->
-  if msg.action is "closePopup"
-    chrome.windows.get msg.windowId, {}, (win) ->
-      if panelLocsWk = local.panelLocs[win?.id]
-        bmm.setPanelLoc panelLocsWk.bmId,
-          width:  win.width
-          height: win.height
-          top:    win.top
-          left:   win.left
+  switch msg.action
+    when "closePopup"
+      chrome.windows.get msg.windowId, {}, (win) ->
+        if panelLocsWk = local.panelLocs[win?.id]
+          bmm.setPanelLoc panelLocsWk.bmId,
+            width:  win.width
+            height: win.height
+            top:    win.top
+            left:   win.left
+    when "mousedown"
+      onClickPopup msg
 
 onRemoveTabHandler = (tabId, removeInfo) ->
   if requestInfo[tabId]
