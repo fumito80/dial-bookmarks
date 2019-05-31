@@ -699,6 +699,14 @@ body {
 .windowSeparater {
   display: none;
 }
+.result .tabs a {
+  display: list-item;
+}
+.tabs a[data-options='active'] {
+  border-radius: 3px;
+  border: 1px dotted #bebebe;
+  background-color: #fff;
+}
 .result:not(.searched) .tabs.opened .windowSeparater {
   display: inherit;
 }

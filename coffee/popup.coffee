@@ -1,3 +1,5 @@
+$$ = (selector, parent = document) -> [parent.querySelectorAll(selector)...]
+
 unless localStorage.height
   localStorage.height = 530
   localStorage.width = 500
@@ -98,14 +100,14 @@ onFocusTabLink = (event) ->
   values = event.target.dataset.value.split(":")
   windowId = ~~values[0]
   tabId = ~~values[1]
-  chrome.tabs.update tabId, {active: true}, ->
+  chrome.tabs.update tabId, { active: true }, ->
     # chrome.windows.update windowId, {focused: true}
 
 gmtAdd = /GMT([+|-]\d{4})/.exec((new Date()).toString())[1] * 36000
 
 bmm.createSpLinks = (sites, elSpFolder, className, labels) ->
   tmplLink = _.template """
-    <span><a href="#" title="<%=tooltip%>" class="title2" data-key="<%=key%>" data-value="<%=value%>" style="background-image:url(<%=imageUrl%>);" tabindex="0"><i class="<%=iconClass%>"></i><%=title%></a></span>
+    <span><a href="#" title="<%=tooltip%>" class="title2" data-options="<%=optionsF%>" data-key="<%=key%>" data-value="<%=value%>" style="background-image:url(<%=imageUrl%>);" tabindex="0"><i class="<%=iconClass%>"></i><%=title%></a></span>
     """
   tmplXts = _.template """
     <span class="xts"><a href="#" title="<%=tooltip%>" class="title2 <%=enabled%>" data-options="<%=optionsF%>" data-type="<%=type%>" data-key="<%=key%>" data-value="<%=value%>" style="background-image:url(<%=imageUrl%>);" tabindex="0"><i class="<%=iconClass%>"></i><%=title%></a><span class="xtsDisabled <%=enabled%>"></span></span>
@@ -117,8 +119,8 @@ bmm.createSpLinks = (sites, elSpFolder, className, labels) ->
     elSpFolder2.className += " hasFolder"
     parentTitleClass = elSpFolder2.querySelector(".title").className
     parentExpandMargin = ~~/(\d+)px/.exec(elSpFolder2.querySelector(".expand-icon").style.marginLeft)[1] + 15
-    for i in [0...labels.length]
-      bmId = "google_" + labels[i]
+    labels.forEach (label) ->
+      bmId = "google_" + label
       folderClass = "folder virtual"
       if bmm.folderState[bmId]
         if bmm.folderState[bmId].opened
@@ -140,8 +142,7 @@ bmm.createSpLinks = (sites, elSpFolder, className, labels) ->
       try
         $(elFolder2).contextMenu("menuFolderGoogleLabel", {})
       catch
-  for i in [0...sites.length]
-    site = sites[i]
+  sites.forEach (site) ->
     if site.url
       if site.url.length > 128
         tooltip = site.title + "\n" + site.url.substring(0, 128) + "..."
@@ -158,9 +159,10 @@ bmm.createSpLinks = (sites, elSpFolder, className, labels) ->
         value = site.sessionId
       when "tabs"
         if site.url.indexOf(urlPopup) isnt -1
-          continue
+          return
         key = "tab"
         value = site.windowId + ":" + site.id
+        optionsF = if site.active then "active" else ""
         if lastWindowId and lastWindowId isnt site.windowId
           parentFolders[0].appendChild elSpan = document.createElement("span")
           elSpan.className = "windowSeparater"
@@ -178,9 +180,8 @@ bmm.createSpLinks = (sites, elSpFolder, className, labels) ->
         tmpl = tmplXts
       when "googleBookmarks"
         if site.labels.length > 0
-          parentFolders = []
-          for j in [0...site.labels.length]
-            parentFolders.push elSpFolder.querySelector(".folder[data-id='google_#{site.labels[j]}'")
+          parentFolders = site.labels.map (label) ->
+            elSpFolder.querySelector(".folder[data-id='google_#{label}'")
     parentFolders.forEach (parentFolder) ->
       parentFolder.appendChild elLink = document.createElement("div")
       elLink.className = "link"
@@ -204,7 +205,7 @@ bmm.createSpLinks = (sites, elSpFolder, className, labels) ->
       $(elSpFolder).find(".link a").contextMenu(spFolderInfo.ctxMenu, {})
   catch
   if className is "tabs" && (options.focusLinkTab || options.hoverLinkTab)
-    Array.prototype.forEach.call elSpFolder.getElementsByTagName("a"), (el) ->
+    [elSpFolder.getElementsByTagName("a")...].forEach (el) ->
       if options.focusLinkTab
         el.addEventListener "focus", onFocusTabLink, false
       if options.hoverLinkTab
@@ -332,26 +333,24 @@ bmm.query = (query, reload) ->
     searchFolderSelector = ".bookmks .folder"
   rootFolder = ".folders > .result > .link"
   queryU = query.toUpperCase()
-  elFolders = []
-  Array.prototype.forEach.call document.querySelectorAll(spFoldersSelector), (elFolder) ->
-    elFolders.push elFolder
+  elFolders = $$(spFoldersSelector).map (elFolder) ->
     unless query is ""
       elFolder.style.display = "none"
+    elFolder
   bmm.setSpecialFolders(elFolders).done ->
     unless reload
-      Array.prototype.forEach.call document.querySelectorAll(".link.hide"), (el) ->
-        el.className = "link"
+      $$(".link.hide").forEach (el) -> el.className = "link"
     unless query is ""
       if reload
         searchFolderSelector = ".bookmks .sp, .bookmks .sp .folder"
       else
-        Array.prototype.forEach.call document.querySelectorAll(rootFolder), (el) ->
+        $$(rootFolder).forEach (el) ->
           elLink = el.getElementsByTagName("a")[0]
           if elLink.getAttribute("title").toUpperCase().indexOf(queryU) >= 0
             el.className = "link"
           else
             el.className = "link hide"
-      Array.prototype.forEach.call document.querySelectorAll(searchFolderSelector), (elFolder) ->
+      $$(searchFolderSelector).forEach (elFolder) ->
         id = elFolder.dataset.id
         if reload
           bmm.folderState[id].hide = true
@@ -360,7 +359,7 @@ bmm.query = (query, reload) ->
         bmm.setFolderStateId bmm.folderState, elFolder, id
         bmm.setFolderStateId bmm.folderState, (elFoldersFolder = document.querySelector(".folders .folder[data-id='#{id}']")), id
         folderVisible = false
-        Array.prototype.forEach.call elFolder.childNodes, (el) ->
+        [elFolder.childNodes...].forEach (el) ->
           if /link/.test el.className
             elLink = el.getElementsByTagName("a")[0]
             if (elLink.getAttribute("title") + elLink.textContent).toUpperCase().indexOf(queryU) >= 0
@@ -380,8 +379,7 @@ bmm.query = (query, reload) ->
             bmm.setFolderStateId bmm.folderState, elFoldersFolder, folderId
             bmm.setFolderStateId bmm.folderState, (elFoldersFolder = document.querySelector(".bookmks .folder[data-id='#{folderId}']")), id
       resizeScrollBar?()
-    Array.prototype.forEach.call document.querySelectorAll(spFoldersSelector), (el) ->
-      el.style.display = ""
+    $$(spFoldersSelector).forEach (el) -> el.style.display = ""
     if query is ""
       bmm.setScrollIntoView()
     if bmm.dfdQueryCommit?.state() is "pending"

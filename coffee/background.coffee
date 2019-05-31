@@ -114,7 +114,7 @@ onClickPopup = (options) ->
       left = ~~localStorage.windowLeft   || 100
     { width, height, top, left }
   updateWindow = (winId) ->
-    chrome.windows.update winId, calcTopLeft(), -> dfd.resolve()
+    chrome.windows.update winId, calcTopLeft(), -> dfd.reject()
   createWindow = ->
     windowInfo = Object.assign {}, calcTopLeft(),
       url:  "popup.html"
@@ -886,6 +886,7 @@ onUpdateTabHandler = (tabId, changeInfo, tab) ->
           (respJs) ->
   catch
 
+chainClMsg = null
 chrome.runtime.onMessage.addListener (msg) ->
   switch msg.action
     when "closePopup"
@@ -897,7 +898,9 @@ chrome.runtime.onMessage.addListener (msg) ->
             top:    win.top
             left:   win.left
     when "mousedown"
-      onClickPopup msg
+      if chainClMsg.state() is "rejected"
+         chainClMsg = $.Deferred().resolve()
+      chainClMsg = chainClMsg.then -> onClickPopup msg
 
 onRemoveTabHandler = (tabId, removeInfo) ->
   if requestInfo[tabId]
@@ -1002,3 +1005,5 @@ $ ->
     bmm.makeHtml holdState
 
   elCtxMenus = $(chrome.i18n.getMessage("htmlContextMenus")).get(0)
+
+  chainClMsg = $.Deferred().resolve()
