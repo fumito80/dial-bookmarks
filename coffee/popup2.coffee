@@ -7,6 +7,8 @@ dfdSubmitQueue = null
 dfdSetSpFolderQueue = null
 virtualClick = false
 
+$$ = (selector, parent = document) -> [parent.querySelectorAll(selector)...]
+
 coalesceAllFolder = ->
   for key of bmm.folderState
     bmm.folderState[key].opened = false
@@ -24,10 +26,10 @@ openAllFolder = ->
 
 setFolderState = (id) ->
   if id
-    Array.prototype.forEach.call document.querySelectorAll(".folder[data-id='#{id}']"), (folder) ->
+    $$(".folder[data-id='#{id}']").forEach (folder) ->
       bmm.setFolderStateId bmm.folderState, folder, id
   else
-    Array.prototype.forEach.call document.querySelectorAll(".folder"), (folder) ->
+    $$(".folder").forEach (folder) ->
       if id = folder.dataset.id
         bmm.setFolderStateId bmm.folderState, folder, id
   bmm.setScrollIntoView()
@@ -243,7 +245,9 @@ hideCtxMenu = ->
 
 getSelected = ->
   hideCtxMenu()
-  document.querySelector(".selected")
+  selected = document.querySelector(".selected")
+  unless getSelected.dataset
+    selected.querySelector('.title2')
 
 getUrlFromFavicon = (faviconUrl) ->
   url = /url\("?chrome:\/\/favicon\/(.+?)"?\)$/.exec(faviconUrl)[1]
@@ -406,7 +410,7 @@ onClickRemoveQuery = (event) ->
     bmm.folderState[key].hide = false
   setFolderState()
   bmm.setFolderState bmm.folderState
-  Array.prototype.forEach.call document.querySelectorAll(".link"), (link) ->
+  $$(".link").forEach (link) ->
     link.className = "link"
   $(".result").removeClass("searched")
   bmm.lastFolderState = null
@@ -624,7 +628,11 @@ onMouseDnWindow = (event) ->
             elDragMoving.style.left = event.clientX + 15 + document.body.scrollLeft + "px"
             elDragMoving.style.top = event.clientY + 8 + document.body.scrollTop + "px"
         ), 100)
-  if /title|title2/.test event.target.className
+  if event.target.dataset.key is "tab"
+    $(".selected").removeClass "selected"
+    if event.which is 3
+      $(event.target).closest(".link").addClass "selected"
+  else if /title|title2/.test event.target.className
     $(".selected").removeClass "selected"
     if event.which is 3
       $(event.target).addClass "selected"
@@ -880,9 +888,7 @@ onKeydownWindow = (event) ->
       $(".expanded").removeClass("expanded")
       $(".opened").removeClass("opened")
       setAxKeyMode 1
-    elAxs = Array.apply(null, document.querySelectorAll(".folders .title2 > .readyAxKey"))
-    elAxs = elAxs.concat Array.apply(null, document.querySelectorAll(".bookmks .title2 > .readyAxKey"))
-    elAxs = elAxs.concat Array.apply(null, document.querySelectorAll(".folders .title > .readyAxKey"))
+    elAxs = $$(".folders .title2 > .readyAxKey, .bookmks .title2 > .readyAxKey, .folders .title > .readyAxKey")
     if event.shiftKey
       elAxs = elAxs.reverse()
     focusedIndx = -1

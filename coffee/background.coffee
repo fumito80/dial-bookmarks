@@ -47,6 +47,8 @@ setEventHandlers = ->
       chrome.tabs.onDetached.addListener changeSpFolderThing
     unless chrome.tabs.onRemoved.hasListeners()
       chrome.tabs.onRemoved.addListener onRemoveTabHandler
+    unless chrome.tabs.onActivated.hasListeners()
+      chrome.tabs.onActivated.addListener changeSpFolderThing
   else
     if chrome.tabs.onCreated.hasListeners()
       chrome.tabs.onCreated.removeListener changeSpFolderThing
@@ -60,6 +62,8 @@ setEventHandlers = ->
       chrome.tabs.onDetached.removeListener changeSpFolderThing
     if chrome.tabs.onRemoved.hasListeners() && !local.options.postPage
       chrome.tabs.onRemoved.removeListener onRemoveTabHandler
+    if chrome.tabs.onActivated.hasListeners()
+      chrome.tabs.onActivated.removeListener changeSpFolderThing
   if local.options.dispApps || local.options.dispXts
     unless chrome.management.onInstalled.hasListeners()
       chrome.management.onInstalled.addListener changeSpFolderThing
@@ -106,9 +110,11 @@ onClickPopup = (options) ->
   calcTopLeft = ->
     width  = ~~localStorage.windowWidth  || 400
     height = ~~localStorage.windowHeight || 600
-    if options.update
-      top  = Math.min(options.screenY, screen.availHeight - height)
-      left = Math.min(options.screenX, screen.availWidth - width)
+    if options.contextMenu
+      top  = Math.min(options.screenY - 10, screen.availHeight - height)
+      left = Math.min(options.screenX - 10, screen.availWidth - width)
+      # top  = Math.max(0, options.screenY - height)
+      # left = Math.max(0, options.screenX - width)
     else
       top  = ~~localStorage.windowTop    || 100
       left = ~~localStorage.windowLeft   || 100
@@ -126,7 +132,7 @@ onClickPopup = (options) ->
   if popupWindowId
     chrome.windows.get popupWindowId, { populate: true }, (win) ->
       if win
-        if options?.update
+        if options?.contextMenu
           updateWindow win.id
         chrome.windows.update popupWindowId, { focused: true }, (win) ->
           if options?.create
@@ -254,6 +260,9 @@ window.bmm =
   getGoogleBookmarks: ->
     dfd = $.Deferred()
     $.get("http://www.google.com/bookmarks/lookup", { output: "xml", num: 10000 }, "xml").done (xmlResp) ->
+      unless xmlResp.documentElement
+        dfd.resolve([], [])
+        return
       sites = $$("xml_api_reply > bookmarks > bookmark", xmlResp).map (node) ->
         title: node.querySelector("title").textContent
         url: node.querySelector("url").textContent

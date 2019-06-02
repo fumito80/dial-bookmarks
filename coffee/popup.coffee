@@ -19,24 +19,6 @@ elFolders.style.height   = height + "px"
 document.body.style.width = width + "px"
 document.body.style.zoom = (localStorage.zoom || 100) / 100
 
-# ctx = document.getCSSCanvasContext("2d", "triangle", 10, 6)
-# #canvas = document.createElement("canvas")
-# canvas = document.getElementById(".triangle")
-# canvas.width = 10
-# canvas.height = 6
-# ctx = canvas.getContext('2d')
-# ctx.translate(.5, .5)
-# ctx.fillStyle = "#000000"
-# ctx.beginPath()
-# ctx.moveTo(8, 0)
-# ctx.lineTo(8, .5)
-# ctx.lineTo(8/2-.5, 8/2+.5)
-# ctx.lineTo(0, .5)
-# ctx.lineTo(0, 0)
-# ctx.closePath()
-# ctx.fill()
-# ctx.stroke()
-#
 # # ctx2 = document.getCSSCanvasContext("2d", "xtsDisabled", 20, 20)
 # ctx2 = document.createElement("canvas")
 # CSS.elementSources.set("xtsDisabled", ctx2)
@@ -142,15 +124,17 @@ bmm.createSpLinks = (sites, elSpFolder, className, labels) ->
       try
         $(elFolder2).contextMenu("menuFolderGoogleLabel", {})
       catch
-  sites.forEach (site) ->
+  sites.reduce (acc, site) ->
     if site.url
       if site.url.length > 128
         tooltip = site.title + "\n" + site.url.substring(0, 128) + "..."
       else
         tooltip = site.title + "\n" + site.url
-      imageUrl = "chrome://favicon/" + site.url
+      [, dir] = /^(.+?)\?/.exec(site.url) || [, site.url]
+      imageUrl = "chrome://favicon/" + dir
     parentFolders = [elSpFolder]
     tmpl = tmplLink
+    activeTab = ""
     switch className
       when "recentHistory"
         tooltip = "LastVisit:" + (new Date(site.lastVisitTime+gmtAdd)).toISOString().substring(0, 19) + " VisitCount:" + site.visitCount + "\n" + tooltip
@@ -159,15 +143,17 @@ bmm.createSpLinks = (sites, elSpFolder, className, labels) ->
         value = site.sessionId
       when "tabs"
         if site.url.indexOf(urlPopup) isnt -1
-          return
+          return acc
         key = "tab"
         value = site.windowId + ":" + site.id
-        optionsF = if site.active then "active" else ""
-        if lastWindowId and lastWindowId isnt site.windowId
-          parentFolders[0].appendChild elSpan = document.createElement("span")
-          elSpan.className = "windowSeparater"
-          elSpan.appendChild document.createElement("hr")
-        lastWindowId = site.windowId
+        activeTab = " active" if site.active
+        if not acc.lastWindowId or acc.lastWindowId isnt site.windowId
+          parentFolders[0].appendChild acc.elWindow = document.createElement("div")
+          acc.elWindow.className = "window"
+          if site.incognito
+            acc.elWindow.className = "window incognito"
+        parentFolders = [acc.elWindow]
+        acc.lastWindowId = site.windowId
       when "extensions", "apps"
         key = if /extensions/.test className then "xts" else "app"
         value = site.appId
@@ -184,7 +170,7 @@ bmm.createSpLinks = (sites, elSpFolder, className, labels) ->
             elSpFolder.querySelector(".folder[data-id='google_#{label}'")
     parentFolders.forEach (parentFolder) ->
       parentFolder.appendChild elLink = document.createElement("div")
-      elLink.className = "link"
+      elLink.className = "link" + activeTab
       elLink.dataset.id = "none"
       if site.title
         title = bmm.setAxToTitle(site.title)
@@ -200,6 +186,8 @@ bmm.createSpLinks = (sites, elSpFolder, className, labels) ->
         enabled: enabled || ""
         optionsF: optionsF || "0"
         type: type || ""
+    acc
+  , {}
   try
     if spFolderInfo.ctxMenu
       $(elSpFolder).find(".link a").contextMenu(spFolderInfo.ctxMenu, {})

@@ -2,9 +2,9 @@ document.addEventListener "mousedown", (event) ->
   if event.button is 1
     chrome.runtime.sendMessage
       "action": "mousedown"
-      "screenX": event.screenX - 10
-      "screenY": event.screenY - 10
-      "update": true
+      "screenX": event.screenX
+      "screenY": event.screenY
+      "contextMenu": true
 
 chrome.runtime.onMessage.addListener (req, sender, sendResponse) ->
   switch req.action

@@ -5,7 +5,41 @@ concat = require 'gulp-concat'
 tap    = require 'gulp-tap'
 zipfld = require 'zip-folder'
 del    = require 'del'
-# rename = require 'gulp-rename'
+fs     = require 'fs'
+
+i18nLangs = ["ja", "en"]
+
+readFile = (path, postFn = String) ->
+  new Promise (resolve, reject) ->
+    fs.readFile path, (err, data) ->
+      if err
+        reject err
+      else
+        try
+          resolve postFn(data)
+        catch e
+          reject e
+
+writeFile = (path, data, enc = 'utf8') ->
+  new Promise (resolve, reject) ->
+    fs.writeFile path, data, enc, (err) ->
+      if err
+        reject err
+      else
+        resolve()
+
+exports.buildMessages = ->
+  Promise.all i18nLangs.map (lang) ->
+    Promise.all([
+      readFile("./i18n/#{lang}/messages.json", JSON.parse)
+      readFile("./i18n/#{lang}/options.json")
+      readFile("./i18n/#{lang}/ctxMenu.html")
+    ])
+    .then ([messages, options, htmlCtxMenu]) ->
+      Object.assign messages,
+        options: message: options
+        htmlContextMenus: message: htmlCtxMenu
+      writeFile "./src/_locales/#{lang}/messages.json", JSON.stringify(messages, null, '\t')
 
 uglifyOrThru = ->
   if process.argv.includes 'prd'

@@ -269,7 +269,7 @@ chrome.runtime.onMessage.addListener (req) ->
 
 $ = jQuery
 $ ->
-  i18Messages = JSON.parse "{" + $.trim(chrome.i18n.getMessage("options")) + "}"
+  i18Messages = JSON.parse chrome.i18n.getMessage("options")
   $(document.body).append(tmplMain(i18Messages)).append($(".dialogIcons"))
 
   manifest = chrome.runtime.getManifest()
