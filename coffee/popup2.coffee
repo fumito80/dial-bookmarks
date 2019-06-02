@@ -246,8 +246,9 @@ hideCtxMenu = ->
 getSelected = ->
   hideCtxMenu()
   selected = document.querySelector(".selected")
-  unless getSelected.dataset
-    selected.querySelector('.title2')
+  if selected and not selected.dataset
+    return selected.querySelector('.title2')
+  selected
 
 getUrlFromFavicon = (faviconUrl) ->
   url = /url\("?chrome:\/\/favicon\/(.+?)"?\)$/.exec(faviconUrl)[1]
@@ -410,8 +411,8 @@ onClickRemoveQuery = (event) ->
     bmm.folderState[key].hide = false
   setFolderState()
   bmm.setFolderState bmm.folderState
-  $$(".link").forEach (link) ->
-    link.className = "link"
+  $$(".link.hide").forEach (link) ->
+    link.className = "link" + if /active/.test(link.className) then " active" else ""
   $(".result").removeClass("searched")
   bmm.lastFolderState = null
   resizeScrollBar()
@@ -649,63 +650,29 @@ onMouseDnWindow = (event) ->
     event.stopPropagation()
     false
 
-keyDownTab = (shiftKey, tabKey) ->
-  # if not tabKey and (target$ = $(".folders .folder.opened > .marker > .title")).length > 0
-  #   target$.focus()
-  # else
-  #   target$ = $(":focus")
-  if (target$ = $(".bookmks .title2:focus")).length > 0
-    tabbable$ = $(".bookmks .title2:tabbable")
-    index = tabbable$.index target$.get(0)
-    if shiftKey
-      if index is 0
-        index = tabbable$.length - 1
-      else
-        index--
-    else
-      if tabbable$.length is (index + 1)
-        index = 0
-      else
-        index++
-    newTarget$ = tabbable$.eq(index)
-    newTarget$.focus()
-    # if not tabKey
-    #   onFocusFolder currentTarget: newTarget$
+moveFocus = (list$, focused$, shiftKey) ->
+  index = list$.index focused$[0]
+  indexes = [list$.length - 1, [list$...].map((_, i) -> i)..., 0]
+  newIndex = indexes[index + [1, -1][Number(shiftKey)] + 1]
+  newTarget$ = list$.eq(newIndex)
+  newTarget$.focus()
+
+keyDownTab = (shiftKey, event) ->
+
+  if (focused$ = $(".bookmks .title2:focus")).length > 0
+    moveFocus $(".bookmks .title2:tabbable"), focused$, shiftKey
+  else if (focused$ = $(".query:focus, .folders .title:focus")).length > 0
+    moveFocus $(".query, .folders .title:tabbable"), focused$, shiftKey
+  else if axKeyMode
+    moveFocus $(".query, .folders .title:tabbable"), $(".query"), shiftKey
   else
-    if (target$ = $(".query:focus")).length > 0
-      null
-    else if (target$ = $(".folders .folder.opened > .marker > .title")).length > 0
-      target$.focus()
-    # wheelEvent = document.createEvent "MouseEvent"
-    # wheelEvent.initEvent "mousewheel", true, true
-    # wheelEvent.wheelDelta = 120 * (if shiftKey then 1 else -1)
-    # document.dispatchEvent wheelEvent
-    kbdEvent = document.createEvent "KeyboardEvent"
-    opt =
-      canBubble: true
-      cancelable: false
-      view: document.defaultView
-      keyIdentifier: "U+0009"
-      keyLocation: 0x00
-      ctrlKey: false
-      altKey: false
-      shiftKey: shiftKey
-      metaKey: false
-      altGraphKey: false
-    kbdEvent.initKeyboardEvent "keydown", opt.canBubble, opt.cancelable, opt.view, opt.keyIdentifier, opt.keyLocation, opt.ctrlKey, opt.altKey, opt.shiftKey, opt.metaKey, opt.altGraphKey
-    document.dispatchEvent kbdEvent
-    newTarget$ = $(":focus")
-    if newTarget$.hasClass("query")
-      setFocusPane "query"
-    else if newTarget$.hasClass("title")
-      onFocusFolder currentTarget: newTarget$
-    else
-      if options.openExclusive
-        coalesceAllFolder()
-      else
-        closeAllFolder()
-      setFolderState()
-      # target$.parent().parent().removeClass "opened"
+    return
+
+  newTarget$ = $(":focus")
+  if newTarget$.hasClass("query")
+    setFocusPane "query"
+  else if newTarget$.hasClass("title")
+    onFocusFolder currentTarget: newTarget$
 
 clickEl = (el) ->
   virtualClick = true
@@ -752,10 +719,9 @@ setFocusPane = (name, shiftKey) ->
         setFocusPane "query"
 
 onKeydownWindow = (event) ->
-  switch event.keyCode
-    when 9 # Tab key
-      if re = /(query|title2|title)/.exec($(":focus").attr("class"))
-        focusedClass = re[1]
+  switch event.key
+    when "Tab"
+      [, focusedClass] = /(query|title2|title)/.exec($(":focus").attr("class")) || [, null]
       switch focusedClass
         when "query"
           if event.shiftKey
@@ -774,36 +740,46 @@ onKeydownWindow = (event) ->
             setFocusPane "links"
         else
           setFocusPane "folders"
-      # keyDownTab event.shiftKey #, $(".title2:focus").length
-    when 38, 40 # Up/Down Arrow
-      keyDownTab event.keyCode is 38 #, tabKey = $(".title2:focus").length
+    when "ArrowUp", "ArrowDown"
+      keyDownTab event.key is "ArrowUp", event
       unless /title2|query/.test($(":focus").get(0)?.className)
         setAxKeyMode 1
         selectAxFolder $(":focus")
-    when 37, 39 # Left/Right Arrow
+    when "ArrowLeft", "ArrowRight"
       if currentFolder = document.querySelector(".folders .folder.opened > .marker > .title")
         currentFolder.focus()
       if target = document.querySelector(".title:focus").parentElement.parentElement
         hasFolder = /hasFolder/.test target.className
         expanded = /expanded/.test target.className
-        if event.keyCode is 37
+        if event.key is "ArrowLeft"
           if not hasFolder or (hasFolder and not expanded) # Up to folder
-            if /folder/.test target.parentElement.className
-              setAxKeyMode 1
-              clickEl (elAx$ = $(target.parentElement).find("> .marker > .title")).get(0)
-              selectAxFolder elAx$
+            prevTarget = if isToParent = /folder/.test target.parentElement.className
+              target.parentElement
+            else if /opened/.test target.className
+              target
+            unless prevTarget
+              setAxKeyMode 0
+              document.querySelector(".query").focus()
               return false
+            setAxKeyMode 1
+            clickEl (elAx$ = $(prevTarget).find("> .marker > .title")).get(0)
+            if isToParent
+              selectAxFolder elAx$
+            return false
           else # Coalesce folder
             expanded = false
-        else
+        else #ArrowRight
           if hasFolder
             if expanded # Down to folder
-              keyDownTab false
+              keyDownTab false, event
               setAxKeyMode 1
               selectAxFolder $(":focus")
               return false
             else # Expand folder
               expanded = true
+          else if !/opened/.test target.className
+            setAxKeyMode 1
+            clickEl $(target).find("> .marker > .title").get(0)
         # expanded = if event.keyCode is 39 then true else false
         id = target.dataset.id
         if bmm.folderState[id]
@@ -812,8 +788,8 @@ onKeydownWindow = (event) ->
           bmm.folderState[id].expanded = expanded
           bmm.folderState[id].opened = false
         setFolderState(id)
-    when 13 # Enter
-      if (elAx$ = $(":focus:not(.query)")).length > 0
+    when "Enter", "Alt"
+      if (elAx$ = $(":focus:not(.query)")).length > 0 and event.key isnt "Alt"
         if elAx$.hasClass("title2")
           clickEl elAx$.get(0)
         else
@@ -832,29 +808,17 @@ onKeydownWindow = (event) ->
           selectAxFolder elAx$
           $(".bookmks .title2:visible:first").focus()
         return false
+      else if axKeyMode and event.key is "Alt"
+        setAxKeyMode 0
       else if currentFolder = document.querySelector(".folders .folder.opened > .marker > .title")
         setAxKeyMode 1
         selectAxFolder $(currentFolder)
-        # currentFolder.focus()
-        # $(".bookmks .title2:visible:first").focus()
+        currentFolder.focus()
+        $(".bookmks .title2:visible:first").focus()
         return false
       else
         return true
-    when 18 # Alt key
-      if newAxKeyMode = 1 - axKeyMode
-        if elResult$.hasClass("searched") or bmm.lastFolderState
-          if currentFolder = document.querySelector(".folders .folder.opened > .marker > .title")
-            setAxKeyMode 1
-            selectAxFolder $(currentFolder)
-          return false
-        else
-          if options.openExclusive
-            coalesceAllFolder()
-          else
-            closeAllFolder()
-          setFolderState()
-      setAxKeyMode newAxKeyMode
-    when 27 # ESC key
+    when "Escape"
       hideCtxMenu()
       $(".selected").removeClass("selected")
       if elResult$.hasClass("searched") or bmm.lastFolderState
@@ -862,21 +826,6 @@ onKeydownWindow = (event) ->
           setAxKeyMode 0
         else
           onClickRemoveQuery()
-      else if axKeyMode
-        if $(".bookmks .title2:focus").length > 0
-          document.querySelector(".folders .folder.opened > .marker > .title").focus()
-        else if (elAx$ = $(".folders .folder.opened").parent().find("> .marker > .title")).length > 0
-          clickEl elAx$.get(0)
-          selectAxFolder elAx$
-        else if currentFolder = document.querySelector(".folders .folder.opened > .marker > .title")
-          if options.openExclusive
-            coalesceAllFolder()
-          else
-            closeAllFolder()
-          setFolderState()
-          setAxKeyMode 1
-        else
-          setAxKeyMode 0
       else
         setAxKeyMode 0
         document.querySelector(".query").focus()
@@ -955,7 +904,7 @@ openSpLink = (key, value1, value2) ->
       values = value1.split(":")
       windowId = ~~values[0]
       tabId = ~~values[1]
-      chrome.tabs.update tabId, {active: true}, ->
+      chrome.tabs.update tabId, { active: true }, ->
         chrome.windows.update windowId, {focused: true}, ->
           unless options.standalone
             close()
@@ -1048,18 +997,15 @@ onClickXtsSettings = (id) ->
   if id or target = getSelected()
     xtsId = id || target.dataset.value
     chrome.tabs.query {}, (tabs) ->
-      if tabs
-        found = false
-        for i in [0...tabs.length]
-          if /^chrome:\/\/settings|^chrome:\/\/history|^chrome:\/\/extensions|^chrome:\/\/help/.test tabs[i].url
-            chrome.tabs.update tabs[i].id, {url: "chrome://extensions/?id=" + xtsId, active: true}, (tab) ->
-              chrome.windows.update tab.windowId, {focused: true}, (win) ->
-                unless options.standalone
-                  close()
-            found = true
-            break
-        unless found
-          createNewTab "chrome://extensions/?id=" + xtsId
+      target = tabs.find (tab) ->
+        /^chrome:\/\/extensions/.test tab.url
+      if target
+        chrome.tabs.update target.id, { url: "chrome://extensions/?id=" + xtsId, active: true }, (tab) ->
+          chrome.windows.update tab.windowId, { focused: true }, ->
+            unless options.standalone
+              close()
+      else
+        createNewTab "chrome://extensions/?id=" + xtsId
 
 onClickRestoreTab = ->
   if target = getSelected()
@@ -1074,18 +1020,17 @@ onClickCopyBookmark = ->
 onClickDeleteHistory = ->
   if target = getSelected()
     url = getUrlFromFavicon target.style.backgroundImage
-    chrome.history.deleteUrl {url: url}
+    chrome.history.deleteUrl { url: url }
 
 onClickAddGoogleBookmark = (event) ->
   if target = getSelected()
     target$ = $(target)
-    chrome.tabs.query bmm.getLastWindowQuery(), (tabs) ->
-      paramList = title: tabs[0].title, bkmk: tabs[0].url
+    chrome.tabs.query bmm.getLastWindowQuery(), ([tab]) ->
+      paramList = title: tab.title, bkmk: tab.url
       unless (labels = target$.text()) is "Google Bookmarks"
         paramList.labels = labels
-      params = []
-      for key of paramList
-        params.push key + "=" + encodeURIComponent(paramList[key])
+      params = Object.keys(paramList).map (key) ->
+        key + "=" + encodeURIComponent(paramList[key])
       window.open "https://www.google.com/bookmarks/mark?op=edit&output=popup&" + params.join("&"), "googlBookmarks", "width=630,height=505"
     target$.removeClass "selected"
 
@@ -1106,18 +1051,16 @@ onClickRefreshGoogleBookmarks = (event) ->
 
 onClickGotoGoogleBookmark = ->
   hideCtxMenu()
-  chrome.tabs.query bmm.getLastWindowQuery(), (tabs) ->
-    chrome.tabs.create {url: "https://www.google.com/bookmarks/", index: tabs[0].index + 1}
+  chrome.tabs.query bmm.getLastWindowQuery(), ([tab]) ->
+    chrome.tabs.create { url: "https://www.google.com/bookmarks/", index: tab.index + 1 }
 
 onClickPasteBookmark = ->
   if copiedBmId
     target = getSelected()
-    chrome.bookmarks.get copiedBmId, (nodes) ->
-      chrome.bookmarks.create
-        parentId: g_currentId = $(target).parent().parent().get(0)?.dataset.id || "1"
-        title: nodes[0].title
-        url: nodes[0].url
-        (node) -> bmm.copyPostData copiedBmId, node.id
+    chrome.bookmarks.get copiedBmId, ([{ title, url }]) ->
+      parentId = g_currentId = $(target).parent().parent().get(0)?.dataset.id || "1"
+      chrome.bookmarks.create { parentId, title, urk }, (node) ->
+        bmm.copyPostData copiedBmId, node.id
 
 onClickChromeScheme = (ev) ->
   url = ev.target.textContent
