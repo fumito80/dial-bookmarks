@@ -111,10 +111,10 @@ onClickPopup = (options) ->
     width  = ~~localStorage.windowWidth  || 400
     height = ~~localStorage.windowHeight || 600
     if options.contextMenu
-      # top  = Math.min(options.screenY - 10, screen.availHeight - height)
-      # left = Math.min(options.screenX - 10, screen.availWidth - width)
-      top  = Math.min(options.screenY - 50, screen.availHeight - height)
-      left = Math.max(0, options.screenX - width)
+      top  = Math.min(options.screenY - 10, screen.availHeight - height)
+      left = Math.min(options.screenX - 10, screen.availWidth - width)
+      # top  = Math.min(options.screenY - 50, screen.availHeight - height)
+      # left = Math.max(0, options.screenX - width)
     else
       top  = ~~localStorage.windowTop    || 100
       left = ~~localStorage.windowLeft   || 100

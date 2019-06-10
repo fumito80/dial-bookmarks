@@ -1,5 +1,6 @@
 document.addEventListener "mousedown", (event) ->
-  if event.button is 2
+  if event.button is 1
+    event.preventDefault()
     chrome.runtime.sendMessage
       "action": "mousedown"
       "screenX": event.screenX
@@ -7,10 +8,10 @@ document.addEventListener "mousedown", (event) ->
       "contextMenu": true
     false
 
-document.addEventListener "contextmenu", (event) ->
-  event.preventDefault()
-  false
-, false
+# document.addEventListener "contextmenu", (event) ->
+#   event.preventDefault()
+#   false
+# , false
 
 chrome.runtime.onMessage.addListener (req, sender, sendResponse) ->
   switch req.action
