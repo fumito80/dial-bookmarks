@@ -542,7 +542,7 @@ body {
   position: relative;
 }
 .folders .result {
-  margin-top: 2.2em;
+  margin-top: .5em;
 }
 .folders .opened > .link {
   display: none;
@@ -568,9 +568,9 @@ body {
   background: #ddd;
   margin-top: -5px;
   border-right: 1px solid whitesmoke;
-  position: absolute;
+  /* position: absolute;
   z-index: 2;
-  width: 100%;
+  width: 100%; */
 }
 .folders > form.scrolling {
   box-shadow: #999 2px 0 3px 2px;
