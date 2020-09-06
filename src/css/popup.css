@@ -438,7 +438,7 @@ body {
 .popup .selected, .title:focus, .folder:not(.tabs) .title2:focus {
   outline: 0;
   background-color: rgba(204, 204, 255, 0.5);
-  border-radius: 1px;
+  border-radius: 3px;
   border: 1px solid #00f;
   text-decoration: none;
   color: #000;
@@ -620,7 +620,7 @@ body {
   padding: 1px;
   overflow: hidden;
   text-overflow: ellipsis;
-  z-index: 6;
+  /* z-index: 6; */
 }
 .bookmks .result > .link {
   display: none;
@@ -698,21 +698,41 @@ body {
 }
 .bookmks .tabs .link {
   border: 1px solid transparent;
-  border-radius: 3px;
+  border-top: 1px solid gray;
+  transition: .2s;
+}
+.bookmks .tabs > .window > .link:first-child {
+  border-top-color: transparent;
 }
 .bookmks .tabs .link:hover {
-  background: rgb(237,239,241);
+  background: rgb(251,251,252);
+  border-top-color: transparent;
+  border-radius: 3px;
 }
 .bookmks .tabs .link:hover a {
   text-decoration: none;
   color: #4D99E0;
 }
+.bookmks .tabs .link:hover + .link {
+  border-top-color: transparent;
+}
+.bookmks > .result .tabs .link > span {
+  display: inline-block;
+}
 .bookmks > .result .tabs a {
   display: inline-block;
   width: 1000px;
 }
-.bookmks .link.active {
+.bookmks > .result > .opened.tabs > .window > .link.active {
   background: white;
+  border-color: transparent;
+  border-radius: 3px;
+}
+.bookmks > .result > .opened.tabs > .window > .link.selected {
+  border-radius: 3px;
+}
+.bookmks .tabs .link.active + .link {
+  border-top-color: transparent;
 }
 .bookmks > .result > .opened > .window > .link:not(.hide) {
   display: block;
@@ -746,6 +766,9 @@ body {
 .bookmks > .result > .opened > .window > .link.selected {
   background-color: rgba(204, 204, 255, 0.5) !important;
   border: 1px solid #00f;
+}
+.bookmks > .result > .opened > .window > .link.selected + .link{
+  border-top-color: transparent;
 }
 input.preSearch {
   display: none;

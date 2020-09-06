@@ -942,21 +942,17 @@ onClickOpenModeChk = (ev) ->
   ev.stopPropagation()
 
 onClickCloseTab = ->
-  if target = getSelected()
+  if target = document.querySelector(".selected a")
     tabId = ~~target.dataset.value.split(":")[1]
     chrome.tabs.remove tabId
 
 onClickMoveToNewWindow = (event) ->
-  if target = getSelected()
-    tabInfo = target.dataset.value.split(":")
-    windowId = tabInfo[0]
-    tabId = tabInfo[1]
-    if /moveToSecret/.test event.target.className
-      incognito = true
-    else if /moveToPopup/.test event.target.className
-      popup = true
-    chrome.windows.update ~~windowId, {focused: true}, ->
-      bmm.createNewWindow ~~tabId, incognito, popup
+  if target = document.querySelector(".selected a")
+    [windowId, tabId] = target.dataset.value.split(":")
+    incognito = /moveToSecret/.test event.target.className
+    panel = /moveToPopup/.test event.target.className
+    chrome.windows.update ~~windowId, { focused: true }, ->
+      bmm.createNewWindow ~~tabId, incognito, panel
 
 onClickXtsWebSite = ->
   if target = getSelected()

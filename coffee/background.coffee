@@ -668,8 +668,8 @@ window.bmm =
       @spFolders.createFolders(dfd)
     dfd.promise()
 
-  createNewWindow: (tabId, incognito, popup) ->
-    chrome.windows.create {incognito: incognito, tabId: tabId, type: if popup then "detached_panel" else "normal"}
+  createNewWindow: (tabId, incognito, panel) ->
+    chrome.windows.create { incognito, tabId, type: if panel then "panel" else "normal" }
 
   setFolderStateId: (folderState, elFolder, id) ->
     newClasses = ["folder"]
